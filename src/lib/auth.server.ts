@@ -5,6 +5,13 @@ import type { SessionPayload } from './auth.types';
 import type { NextRequest } from 'next/server';
 
 const secretKey = process.env.AUTH_SECRET;
+
+if (!secretKey || secretKey.length === 0) {
+    throw new Error(
+        'The environment variable AUTH_SECRET is not set or is empty.',
+    );
+}
+
 const encodedKey = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: any) {
