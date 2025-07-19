@@ -117,14 +117,24 @@ export async function PUT(
             );
         }
 
-        const finalImageUrls = await handleImageUpdates(
-            existingProduct.images,
-            newImageSources,
-        );
+        // Buat objek data untuk pembaruan
+        const dataToUpdate: import('@prisma/client').Prisma.ProductUpdateInput =
+            {
+                ...productData,
+            };
+
+        // Hanya proses gambar jika ada di dalam request
+        if (newImageSources !== undefined) {
+            const finalImageUrls = await handleImageUpdates(
+                existingProduct.images,
+                newImageSources,
+            );
+            dataToUpdate.images = finalImageUrls;
+        }
 
         const updatedProduct = await prisma.product.update({
             where: { id: params.id },
-            data: { ...productData, images: finalImageUrls },
+            data: dataToUpdate,
         });
 
         return NextResponse.json(transformProductForClient(updatedProduct));

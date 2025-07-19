@@ -11,7 +11,6 @@ import { Loader2, Upload, X } from 'lucide-react';
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -45,7 +44,7 @@ import type { Product } from '@/lib/types';
 
 interface ProductFormProps {
     product?: Product | null;
-    onSubmitSuccess: () => void; // Mengganti nama prop agar lebih deskriptif dan sesuai dengan induk
+    onSubmitSuccess: () => void;
 }
 
 export default function ProductForm({
@@ -94,20 +93,27 @@ export default function ProductForm({
     }, [product, isEditMode, form]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        const currentImages = form.getValues('images') || [];
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
 
-        files.forEach((file) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result as string;
-                form.setValue('images', [...currentImages, base64String], {
+        const filePromises = Array.from(files).map((file) => {
+            return new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        });
+
+        Promise.all(filePromises)
+            .then((base64Strings) => {
+                const currentImages = form.getValues('images') || [];
+                form.setValue('images', [...currentImages, ...base64Strings], {
                     shouldValidate: true,
                     shouldDirty: true,
                 });
-            };
-            reader.readAsDataURL(file);
-        });
+            })
+            .catch(console.error);
 
         if (e.target) e.target.value = '';
     };
@@ -143,7 +149,7 @@ export default function ProductForm({
                     }.`,
                     variant: 'success',
                 });
-                onSubmitSuccess(); // Memanggil callback yang benar
+                onSubmitSuccess();
             } else {
                 const errorData = await res.json();
                 toast({
@@ -305,6 +311,53 @@ export default function ProductForm({
                                 />
                             </CardContent>
                         </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Visibilitas</CardTitle>
+                                <CardDescription>
+                                    Atur visibilitas produk di halaman utama.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="isFeatured"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                                <FormLabel>Unggulan</FormLabel>
+                                                <FormControl>
+                                                    <Switch
+                                                        checked={field.value}
+                                                        onCheckedChange={
+                                                            field.onChange
+                                                        }
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="isPromo"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                                <FormLabel>Promo</FormLabel>
+                                                <FormControl>
+                                                    <Switch
+                                                        checked={field.value}
+                                                        onCheckedChange={
+                                                            field.onChange
+                                                        }
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
                     {/* Kolom Kanan (Sidebar) */}
@@ -429,7 +482,7 @@ export default function ProductForm({
                                                         {...field}
                                                         value={
                                                             field.value ?? ''
-                                                        } // Perbaikan: Atasi nilai null/undefined
+                                                        }
                                                         onChange={(e) =>
                                                             field.onChange(
                                                                 e.target
@@ -481,53 +534,6 @@ export default function ProductForm({
                                         </FormItem>
                                     )}
                                 />
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Visibilitas</CardTitle>
-                                <CardDescription>
-                                    Atur visibilitas produk di halaman utama.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="isFeatured"
-                                        render={({ field }) => (
-                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                                <FormLabel>Unggulan</FormLabel>
-                                                <FormControl>
-                                                    <Switch
-                                                        checked={field.value}
-                                                        onCheckedChange={
-                                                            field.onChange
-                                                        }
-                                                    />
-                                                </FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="isPromo"
-                                        render={({ field }) => (
-                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                                <FormLabel>Promo</FormLabel>
-                                                <FormControl>
-                                                    <Switch
-                                                        checked={field.value}
-                                                        onCheckedChange={
-                                                            field.onChange
-                                                        }
-                                                    />
-                                                </FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
                             </CardContent>
                         </Card>
                     </div>

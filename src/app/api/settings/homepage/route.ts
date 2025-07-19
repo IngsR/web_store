@@ -12,7 +12,7 @@ const settingsSchema = z.object({
 
 export async function PUT(request: Request) {
     const session = await getServerSession();
-    if (!session || session.user.role !== 'admin') {
+    if (session?.user?.role !== 'admin') {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
