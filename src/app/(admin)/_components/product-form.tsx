@@ -71,8 +71,6 @@ export default function ProductForm({
             fuelType: undefined,
             condition: Condition.Baru,
             mileage: undefined,
-            isFeatured: false,
-            isPromo: false,
             popularity: 80,
             images: [],
         },
@@ -176,370 +174,343 @@ export default function ProductForm({
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                    {/* Kolom Kiri */}
-                    <div className="space-y-8 lg:col-span-2">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Detail Utama Produk</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <FormField
-                                    control={form.control}
-                                    name="name"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Nama Produk</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder="Contoh: Toyota Avanza G 2023"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="description"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Deskripsi Singkat
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Textarea
-                                                    placeholder="Deskripsi singkat yang menarik..."
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="longDescription"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Deskripsi Lengkap
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Textarea
-                                                    rows={6}
-                                                    placeholder="Jelaskan detail lengkap produk di sini..."
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Gambar Produk</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <FormField
-                                    control={form.control}
-                                    name="images"
-                                    render={() => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <>
-                                                    <input
-                                                        type="file"
-                                                        ref={fileInputRef}
-                                                        onChange={
-                                                            handleFileChange
-                                                        }
-                                                        multiple
-                                                        accept="image/png, image/jpeg, image/webp"
-                                                        className="hidden"
-                                                    />
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        onClick={() =>
-                                                            fileInputRef.current?.click()
-                                                        }
-                                                    >
-                                                        <Upload className="mr-2 h-4 w-4" />
-                                                        Unggah Gambar
-                                                    </Button>
-                                                </>
-                                            </FormControl>
-                                            <FormMessage />
-                                            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                                                {images?.map((src, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="relative aspect-square"
-                                                    >
-                                                        <Image
-                                                            src={src}
-                                                            alt={`Preview ${
-                                                                index + 1
-                                                            }`}
-                                                            fill
-                                                            className="rounded-md object-cover"
-                                                        />
-                                                        <Button
-                                                            type="button"
-                                                            size="icon"
-                                                            variant="destructive"
-                                                            className="absolute -right-2 -top-2 h-6 w-6 rounded-full"
-                                                            onClick={() =>
-                                                                removeImage(
-                                                                    index,
-                                                                )
-                                                            }
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </FormItem>
-                                    )}
-                                />
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Visibilitas</CardTitle>
-                                <CardDescription>
-                                    Atur visibilitas produk di halaman utama.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-2 gap-4">
+            <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="flex h-full flex-col"
+            >
+                {/* Area Konten yang Dapat Di-scroll */}
+                <div className="flex-grow overflow-y-auto pr-6 -mr-6 space-y-8 py-1">
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                        {/* Kolom Kiri */}
+                        <div className="space-y-8 lg:col-span-2">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Detail Utama Produk</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
                                     <FormField
                                         control={form.control}
-                                        name="isFeatured"
-                                        render={({ field }) => (
-                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                                <FormLabel>Unggulan</FormLabel>
-                                                <FormControl>
-                                                    <Switch
-                                                        checked={field.value}
-                                                        onCheckedChange={
-                                                            field.onChange
-                                                        }
-                                                    />
-                                                </FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="isPromo"
-                                        render={({ field }) => (
-                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                                <FormLabel>Promo</FormLabel>
-                                                <FormControl>
-                                                    <Switch
-                                                        checked={field.value}
-                                                        onCheckedChange={
-                                                            field.onChange
-                                                        }
-                                                    />
-                                                </FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Kolom Kanan (Sidebar) */}
-                    <div className="space-y-8 lg:col-span-1">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Harga</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <FormField
-                                    control={form.control}
-                                    name="price"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Harga Asli (Rp)
-                                            </FormLabel>
-                                            <FormControl>
-                                                <CurrencyInput
-                                                    value={field.value}
-                                                    onValueChange={
-                                                        field.onChange
-                                                    }
-                                                    placeholder="Contoh: 250.000.000"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="discountPrice"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Harga Diskon (Rp) - Opsional
-                                            </FormLabel>
-                                            <FormControl>
-                                                <CurrencyInput
-                                                    value={field.value}
-                                                    onValueChange={
-                                                        field.onChange
-                                                    }
-                                                    placeholder="Contoh: 235.000.000"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Atribut & Kategori</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <FormField
-                                    control={form.control}
-                                    name="category"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Kategori</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder="Contoh: MPV"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="condition"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Kondisi</FormLabel>
-                                            <Select
-                                                onValueChange={field.onChange}
-                                                defaultValue={field.value}
-                                            >
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Pilih kondisi" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {Object.values(
-                                                        Condition,
-                                                    ).map((c) => (
-                                                        <SelectItem
-                                                            key={c}
-                                                            value={c}
-                                                        >
-                                                            {c}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                {form.watch('condition') ===
-                                    Condition.Bekas && (
-                                    <FormField
-                                        control={form.control}
-                                        name="mileage"
+                                        name="name"
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>
-                                                    Jarak Tempuh (km)
+                                                    Nama Produk
                                                 </FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        type="number"
-                                                        placeholder="Contoh: 50000"
+                                                        placeholder="Contoh: Toyota Avanza G 2023"
                                                         {...field}
-                                                        value={
-                                                            field.value ?? ''
-                                                        }
-                                                        onChange={(e) =>
-                                                            field.onChange(
-                                                                e.target
-                                                                    .value ===
-                                                                    ''
-                                                                    ? undefined
-                                                                    : +e.target
-                                                                          .value,
-                                                            )
-                                                        }
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
-                                )}
-                                <FormField
-                                    control={form.control}
-                                    name="fuelType"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>
-                                                Jenis Bahan Bakar
-                                            </FormLabel>
-                                            <Select
-                                                onValueChange={field.onChange}
-                                                defaultValue={field.value ?? ''}
-                                            >
+                                    <FormField
+                                        control={form.control}
+                                        name="description"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Deskripsi Singkat
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Pilih jenis bahan bakar" />
-                                                    </SelectTrigger>
+                                                    <Textarea
+                                                        placeholder="Deskripsi singkat yang menarik..."
+                                                        {...field}
+                                                    />
                                                 </FormControl>
-                                                <SelectContent>
-                                                    {Object.values(
-                                                        FuelType,
-                                                    ).map((ft) => (
-                                                        <SelectItem
-                                                            key={ft}
-                                                            value={ft}
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="longDescription"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Deskripsi Lengkap
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Textarea
+                                                        rows={6}
+                                                        placeholder="Jelaskan detail lengkap produk di sini..."
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Gambar Produk</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <FormField
+                                        control={form.control}
+                                        name="images"
+                                        render={() => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <>
+                                                        <input
+                                                            type="file"
+                                                            ref={fileInputRef}
+                                                            onChange={
+                                                                handleFileChange
+                                                            }
+                                                            multiple
+                                                            accept="image/png, image/jpeg, image/webp"
+                                                            className="hidden"
+                                                        />
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            onClick={() =>
+                                                                fileInputRef.current?.click()
+                                                            }
                                                         >
-                                                            {ft}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
+                                                            <Upload className="mr-2 h-4 w-4" />
+                                                            Unggah Gambar
+                                                        </Button>
+                                                    </>
+                                                </FormControl>
+                                                <FormMessage />
+                                                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                                                    {images?.map(
+                                                        (src, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className="relative aspect-square"
+                                                            >
+                                                                <Image
+                                                                    src={src}
+                                                                    alt={`Preview ${
+                                                                        index +
+                                                                        1
+                                                                    }`}
+                                                                    fill
+                                                                    className="rounded-md object-cover"
+                                                                />
+                                                                <Button
+                                                                    type="button"
+                                                                    size="icon"
+                                                                    variant="destructive"
+                                                                    className="absolute -right-2 -top-2 h-6 w-6 rounded-full"
+                                                                    onClick={() =>
+                                                                        removeImage(
+                                                                            index,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* Kolom Kanan (Sidebar) */}
+                        <div className="space-y-8 lg:col-span-1">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Harga</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="price"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Harga Asli (Rp)
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <CurrencyInput
+                                                        value={field.value}
+                                                        onValueChange={
+                                                            field.onChange
+                                                        }
+                                                        placeholder="Contoh: 250.000.000"
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="discountPrice"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Harga Diskon (Rp) - Opsional
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <CurrencyInput
+                                                        value={field.value}
+                                                        onValueChange={
+                                                            field.onChange
+                                                        }
+                                                        placeholder="Contoh: 235.000.000"
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Atribut & Kategori</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="category"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Kategori</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Contoh: MPV"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="condition"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Kondisi</FormLabel>
+                                                <Select
+                                                    onValueChange={
+                                                        field.onChange
+                                                    }
+                                                    defaultValue={field.value}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Pilih kondisi" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {Object.values(
+                                                            Condition,
+                                                        ).map((c) => (
+                                                            <SelectItem
+                                                                key={c}
+                                                                value={c}
+                                                            >
+                                                                {c}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    {form.watch('condition') ===
+                                        Condition.Bekas && (
+                                        <FormField
+                                            control={form.control}
+                                            name="mileage"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>
+                                                        Jarak Tempuh (km)
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            type="number"
+                                                            placeholder="Contoh: 50000"
+                                                            {...field}
+                                                            value={
+                                                                field.value ??
+                                                                ''
+                                                            }
+                                                            onChange={(e) =>
+                                                                field.onChange(
+                                                                    e.target
+                                                                        .value ===
+                                                                        ''
+                                                                        ? undefined
+                                                                        : +e
+                                                                              .target
+                                                                              .value,
+                                                                )
+                                                            }
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
                                     )}
-                                />
-                            </CardContent>
-                        </Card>
+                                    <FormField
+                                        control={form.control}
+                                        name="fuelType"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Jenis Bahan Bakar
+                                                </FormLabel>
+                                                <Select
+                                                    onValueChange={
+                                                        field.onChange
+                                                    }
+                                                    defaultValue={
+                                                        field.value ?? ''
+                                                    }
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Pilih jenis bahan bakar" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {Object.values(
+                                                            FuelType,
+                                                        ).map((ft) => (
+                                                            <SelectItem
+                                                                key={ft}
+                                                                value={ft}
+                                                            >
+                                                                {ft}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex justify-end">
+                {/* Area Tombol yang Tetap */}
+                <div className="mt-auto flex justify-end border-t pt-6">
                     <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

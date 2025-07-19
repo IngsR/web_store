@@ -274,7 +274,7 @@ export default function AdminProductsPageClient({
 
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogContent
-                    className="sm:max-w-4xl"
+                    className="sm:max-w-4xl h-[90vh] flex flex-col"
                     aria-labelledby="product-form-title"
                     aria-describedby="product-form-description"
                 >

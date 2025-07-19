@@ -30,8 +30,6 @@ export const productCoreSchema = z.object({
         .gte(0, { message: 'Mileage must be a non-negative number.' })
         .optional()
         .nullable(),
-    isFeatured: z.boolean().default(false),
-    isPromo: z.boolean().default(false),
     popularity: z.coerce.number().min(0).max(100).default(80),
 });
 
