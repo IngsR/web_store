@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth.server';
+import type { Prisma } from '@prisma/client';
 import { productCreateApiSchema } from '@/lib/schemas/product';
 import { uploadImageFromBase64 } from '@/lib/blob-storage';
 import { transformProductForClient } from '@/lib/data/transform';
@@ -8,21 +9,78 @@ import { transformProductForClient } from '@/lib/data/transform';
 export const dynamic = 'force-dynamic';
 
 /**
- * GET: Mengambil semua produk untuk halaman admin.
- * Endpoint ini diamankan agar hanya bisa diakses oleh admin.
+ * GET: Mengambil produk dengan filter, sorting, dan pencarian.
+ * Endpoint ini bersifat publik.
  */
 export async function GET(request: Request) {
-    const session = await getServerSession();
-    if (session?.user?.role !== 'admin') {
-        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
+    const { searchParams } = new URL(request.url);
+    const q = searchParams.get('q');
+    const categories = searchParams.getAll('category');
+    const priceMin = Number(searchParams.get('priceMin')) || 0;
+    const priceMax =
+        Number(searchParams.get('priceMax')) || Number.MAX_SAFE_INTEGER;
+    const sortBy = searchParams.get('sortBy') || 'popularity';
 
     try {
-        const products = await prisma.product.findMany({
-            orderBy: {
-                createdAt: 'desc',
-            },
+        const where: Prisma.ProductWhereInput = {
+            AND: [],
+        };
+
+        if (q) {
+            (where.AND as Prisma.ProductWhereInput[]).push({
+                OR: [
+                    { name: { contains: q, mode: 'insensitive' } },
+                    { description: { contains: q, mode: 'insensitive' } },
+                ],
+            });
+        }
+
+        if (categories.length > 0) {
+            (where.AND as Prisma.ProductWhereInput[]).push({
+                category: { in: categories },
+            });
+        }
+
+        // Filter berdasarkan harga, mempertimbangkan harga normal dan harga diskon
+        (where.AND as Prisma.ProductWhereInput[]).push({
+            OR: [
+                {
+                    discountPrice: {
+                        gte: priceMin,
+                        lte: priceMax,
+                    },
+                },
+                {
+                    AND: [
+                        { discountPrice: null },
+                        { price: { gte: priceMin, lte: priceMax } },
+                    ],
+                },
+            ],
         });
+
+        let orderBy: Prisma.ProductOrderByWithRelationInput = {};
+        switch (sortBy) {
+            case 'price-asc':
+                orderBy = { price: 'asc' };
+                break;
+            case 'price-desc':
+                orderBy = { price: 'desc' };
+                break;
+            case 'newest':
+                orderBy = { createdAt: 'desc' };
+                break;
+            case 'popularity':
+            default:
+                orderBy = { popularity: 'desc' };
+                break;
+        }
+
+        const products = await prisma.product.findMany({
+            where,
+            orderBy,
+        });
+
         const clientSafeProducts = products.map(transformProductForClient);
         return NextResponse.json(clientSafeProducts);
     } catch (error) {

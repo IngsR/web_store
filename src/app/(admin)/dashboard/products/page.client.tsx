@@ -69,6 +69,7 @@ export default function AdminProductsPageClient({
     const refreshProducts = React.useCallback(async () => {
         try {
             const res = await fetch('/api/products', {
+                cache: 'no-store', // Mencegah caching dan memastikan data selalu baru
                 credentials: 'include',
             });
             if (res.ok) {

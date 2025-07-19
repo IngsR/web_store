@@ -35,38 +35,39 @@ export const productCoreSchema = z.object({
     popularity: z.coerce.number().min(0).max(100).default(80),
 });
 
+const productRefinements = (
+    data: z.infer<typeof productCoreSchema>,
+    ctx: z.RefinementCtx,
+) => {
+    if (
+        data.condition === 'Bekas' &&
+        (data.mileage === null ||
+            data.mileage === undefined ||
+            data.mileage < 0)
+    ) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Mileage is required for used cars.',
+            path: ['mileage'],
+        });
+    }
+
+    if (data.price && data.discountPrice && data.discountPrice >= data.price) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Discount price must be less than the original price.',
+            path: ['discountPrice'],
+        });
+    }
+};
+
 export const productFormSchema = productCoreSchema
     .extend({
         images: z
             .array(z.string())
             .min(1, { message: 'At least one image is required.' }),
     })
-    .superRefine((data, ctx) => {
-        if (
-            data.condition === 'Bekas' &&
-            (data.mileage === null ||
-                data.mileage === undefined ||
-                data.mileage < 0)
-        ) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Mileage is required for used cars.',
-                path: ['mileage'],
-            });
-        }
-
-        if (
-            data.price &&
-            data.discountPrice &&
-            data.discountPrice >= data.price
-        ) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Discount price must be less than the original price.',
-                path: ['discountPrice'],
-            });
-        }
-    });
+    .superRefine(productRefinements);
 
 export const productCreateApiSchema = productCoreSchema
     .extend({
@@ -78,32 +79,7 @@ export const productCreateApiSchema = productCoreSchema
             )
             .min(1, { message: 'At least one image is required.' }),
     })
-    .superRefine((data, ctx) => {
-        // Apply the same refinements as the form schema
-        if (
-            data.condition === 'Bekas' &&
-            (data.mileage === null ||
-                data.mileage === undefined ||
-                data.mileage < 0)
-        ) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Mileage is required for used cars.',
-                path: ['mileage'],
-            });
-        }
-        if (
-            data.price &&
-            data.discountPrice &&
-            data.discountPrice >= data.price
-        ) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Discount price must be less than the original price.',
-                path: ['discountPrice'],
-            });
-        }
-    });
+    .superRefine(productRefinements);
 
 export const productUpdateApiSchema = productCoreSchema
     .partial()
