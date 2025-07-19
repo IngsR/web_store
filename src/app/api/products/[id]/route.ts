@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
 import { getServerSession } from '@/lib/auth.server';
 import { productUpdateApiSchema } from '@/lib/schemas/product';
 import { deleteImage, uploadImageFromBase64 } from '@/lib/blob-storage';
