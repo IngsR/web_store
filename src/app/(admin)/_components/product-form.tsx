@@ -178,18 +178,14 @@ export default function ProductForm({
                                     name="name"
                                     render={({ field }) => (
                                         <FormItem>
-                                            {' '}
-                                            <FormLabel>
-                                                Nama Produk
-                                            </FormLabel>{' '}
+                                            <FormLabel>Nama Produk</FormLabel>
                                             <FormControl>
-                                                {' '}
                                                 <Input
                                                     placeholder="Contoh: Toyota Avanza G 2023"
                                                     {...field}
-                                                />{' '}
-                                            </FormControl>{' '}
-                                            <FormMessage />{' '}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
@@ -198,18 +194,16 @@ export default function ProductForm({
                                     name="description"
                                     render={({ field }) => (
                                         <FormItem>
-                                            {' '}
                                             <FormLabel>
                                                 Deskripsi Singkat
-                                            </FormLabel>{' '}
+                                            </FormLabel>
                                             <FormControl>
-                                                {' '}
                                                 <Textarea
                                                     placeholder="Deskripsi singkat yang menarik..."
                                                     {...field}
-                                                />{' '}
-                                            </FormControl>{' '}
-                                            <FormMessage />{' '}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
@@ -218,19 +212,17 @@ export default function ProductForm({
                                     name="longDescription"
                                     render={({ field }) => (
                                         <FormItem>
-                                            {' '}
                                             <FormLabel>
                                                 Deskripsi Lengkap
-                                            </FormLabel>{' '}
+                                            </FormLabel>
                                             <FormControl>
-                                                {' '}
                                                 <Textarea
                                                     rows={6}
                                                     placeholder="Jelaskan detail lengkap produk di sini..."
                                                     {...field}
-                                                />{' '}
-                                            </FormControl>{' '}
-                                            <FormMessage />{' '}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
@@ -266,9 +258,8 @@ export default function ProductForm({
                                                             fileInputRef.current?.click()
                                                         }
                                                     >
-                                                        {' '}
-                                                        <Upload className="mr-2 h-4 w-4" />{' '}
-                                                        Unggah Gambar{' '}
+                                                        <Upload className="mr-2 h-4 w-4" />
+                                                        Unggah Gambar
                                                     </Button>
                                                 </>
                                             </FormControl>
@@ -298,8 +289,7 @@ export default function ProductForm({
                                                                 )
                                                             }
                                                         >
-                                                            {' '}
-                                                            <X className="h-4 w-4" />{' '}
+                                                            <X className="h-4 w-4" />
                                                         </Button>
                                                     </div>
                                                 ))}
@@ -323,21 +313,19 @@ export default function ProductForm({
                                     name="price"
                                     render={({ field }) => (
                                         <FormItem>
-                                            {' '}
                                             <FormLabel>
                                                 Harga Asli (Rp)
-                                            </FormLabel>{' '}
+                                            </FormLabel>
                                             <FormControl>
-                                                {' '}
                                                 <CurrencyInput
                                                     value={field.value}
                                                     onValueChange={
                                                         field.onChange
                                                     }
                                                     placeholder="Contoh: 250.000.000"
-                                                />{' '}
-                                            </FormControl>{' '}
-                                            <FormMessage />{' '}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
@@ -346,21 +334,19 @@ export default function ProductForm({
                                     name="discountPrice"
                                     render={({ field }) => (
                                         <FormItem>
-                                            {' '}
                                             <FormLabel>
                                                 Harga Diskon (Rp) - Opsional
-                                            </FormLabel>{' '}
+                                            </FormLabel>
                                             <FormControl>
-                                                {' '}
                                                 <CurrencyInput
                                                     value={field.value}
                                                     onValueChange={
                                                         field.onChange
                                                     }
                                                     placeholder="Contoh: 235.000.000"
-                                                />{' '}
-                                            </FormControl>{' '}
-                                            <FormMessage />{' '}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
@@ -377,16 +363,14 @@ export default function ProductForm({
                                     name="category"
                                     render={({ field }) => (
                                         <FormItem>
-                                            {' '}
-                                            <FormLabel>Kategori</FormLabel>{' '}
+                                            <FormLabel>Kategori</FormLabel>
                                             <FormControl>
-                                                {' '}
                                                 <Input
                                                     placeholder="Contoh: MPV"
                                                     {...field}
-                                                />{' '}
-                                            </FormControl>{' '}
-                                            <FormMessage />{' '}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
                                         </FormItem>
                                     )}
                                 />
@@ -402,8 +386,7 @@ export default function ProductForm({
                                             >
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        {' '}
-                                                        <SelectValue placeholder="Pilih kondisi" />{' '}
+                                                        <SelectValue placeholder="Pilih kondisi" />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
@@ -414,8 +397,7 @@ export default function ProductForm({
                                                             key={c}
                                                             value={c}
                                                         >
-                                                            {' '}
-                                                            {c}{' '}
+                                                            {c}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -431,12 +413,10 @@ export default function ProductForm({
                                         name="mileage"
                                         render={({ field }) => (
                                             <FormItem>
-                                                {' '}
                                                 <FormLabel>
                                                     Jarak Tempuh (km)
-                                                </FormLabel>{' '}
+                                                </FormLabel>
                                                 <FormControl>
-                                                    {' '}
                                                     <Input
                                                         type="number"
                                                         placeholder="Contoh: 50000"
@@ -454,9 +434,9 @@ export default function ProductForm({
                                                                           .value,
                                                             )
                                                         }
-                                                    />{' '}
-                                                </FormControl>{' '}
-                                                <FormMessage />{' '}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
                                             </FormItem>
                                         )}
                                     />
@@ -475,8 +455,7 @@ export default function ProductForm({
                                             >
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        {' '}
-                                                        <SelectValue placeholder="Pilih jenis bahan bakar" />{' '}
+                                                        <SelectValue placeholder="Pilih jenis bahan bakar" />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
@@ -487,8 +466,7 @@ export default function ProductForm({
                                                             key={ft}
                                                             value={ft}
                                                         >
-                                                            {' '}
-                                                            {ft}{' '}
+                                                            {ft}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -510,26 +488,22 @@ export default function ProductForm({
                                     name="isFeatured"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                            {' '}
                                             <div className="space-y-0.5">
-                                                {' '}
                                                 <FormLabel>
                                                     Produk Unggulan
-                                                </FormLabel>{' '}
+                                                </FormLabel>
                                                 <FormDescription>
-                                                    {' '}
-                                                    Tampilkan di halaman utama.{' '}
-                                                </FormDescription>{' '}
-                                            </div>{' '}
+                                                    Tampilkan di halaman utama.
+                                                </FormDescription>
+                                            </div>
                                             <FormControl>
-                                                {' '}
                                                 <Switch
                                                     checked={field.value}
                                                     onCheckedChange={
                                                         field.onChange
                                                     }
-                                                />{' '}
-                                            </FormControl>{' '}
+                                                />
+                                            </FormControl>
                                         </FormItem>
                                     )}
                                 />
@@ -538,26 +512,22 @@ export default function ProductForm({
                                     name="isPromo"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                            {' '}
                                             <div className="space-y-0.5">
-                                                {' '}
                                                 <FormLabel>
                                                     Sedang Promo
-                                                </FormLabel>{' '}
+                                                </FormLabel>
                                                 <FormDescription>
-                                                    {' '}
-                                                    Tampilkan label promo.{' '}
-                                                </FormDescription>{' '}
-                                            </div>{' '}
+                                                    Tampilkan label promo.
+                                                </FormDescription>
+                                            </div>
                                             <FormControl>
-                                                {' '}
                                                 <Switch
                                                     checked={field.value}
                                                     onCheckedChange={
                                                         field.onChange
                                                     }
-                                                />{' '}
-                                            </FormControl>{' '}
+                                                />
+                                            </FormControl>
                                         </FormItem>
                                     )}
                                 />
