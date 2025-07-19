@@ -1,0 +1,20 @@
+# Abaikan node_modules dan build files
+node_modules/
+.next/
+
+# Abaikan file environment
+.env
+.env.local
+.env.production
+
+# Abaikan isi direktori upload, tapi tetap simpan foldernya di repo
+public/uploads/avatars/*
+public/uploads/banners/*
+!public/home/.gitkeep
+
+# Tapi pastikan folder tetap ada (pakai file dummy .gitkeep)
+!public/uploads/avatars/.gitkeep
+!public/uploads/banners/.gitkeep
+!public/home/.gitkeep
+
+.vscode/
