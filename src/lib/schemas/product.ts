@@ -45,20 +45,24 @@ export const productCreateSchema = productCoreSchema
             )
             .min(1, { message: 'At least one image is required.' }),
     })
-    .refine(
-        (data) => (data.condition === 'Bekas' ? data.mileage != null : true),
-        {
-            message: 'Mileage is required for used cars.',
-            path: ['mileage'],
-        },
-    )
-    .refine(
-        (data) => (data.discountPrice ? data.discountPrice < data.price : true),
-        {
-            message: 'Discount price must be less than the original price.',
-            path: ['discountPrice'],
-        },
-    );
+    .superRefine((data, ctx) => {
+        // Untuk mobil bekas, jarak tempuh wajib diisi.
+        if (data.condition === 'Bekas' && data.mileage == null) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Mileage is required for used cars.',
+                path: ['mileage'],
+            });
+        }
+        // Harga diskon harus lebih rendah dari harga asli.
+        if (data.discountPrice && data.discountPrice >= data.price) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Discount price must be less than the original price.',
+                path: ['discountPrice'],
+            });
+        }
+    });
 
 export const productUpdateSchema = productCoreSchema
     .partial()

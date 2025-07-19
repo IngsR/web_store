@@ -1,111 +1,66 @@
 import 'server-only';
+import { cache } from 'react';
 import prisma from '@/lib/prisma';
 import { transformProductForClient } from '@/lib/data/transform';
 import type { Product } from '@/lib/types';
-import { unstable_cache } from 'next/cache';
 
-export const getProductById = (id: string): Promise<Product | null> => {
-    return unstable_cache(
-        async () => {
-            const product = await prisma.product.findUnique({
-                where: { id },
-            });
-            if (!product) {
-                return null;
-            }
-            return transformProductForClient(product);
-        },
-        [`product-by-id-${id}`],
-        {
-            tags: [`products:${id}`],
-            revalidate: 3600,
-        },
-    )();
-};
+// Using React `cache` for automatic request deduplication within a render pass.
+// This is the recommended, stable approach for Server Components.
 
-export const getRelatedProducts = (
-    category: string,
-    excludeId: string,
-): Promise<Product[]> => {
-    return unstable_cache(
-        async () => {
-            const products = await prisma.product.findMany({
-                where: {
-                    category,
-                    id: {
-                        not: excludeId,
-                    },
-                },
-                take: 4,
-            });
-            return products.map(transformProductForClient);
-        },
-        [`related-products-${category}-${excludeId}`],
-        {
-            tags: [`products:category:${category}`],
-            revalidate: 3600,
-        },
-    )();
-};
+export const getProductById = cache(
+    async (id: string): Promise<Product | null> => {
+        if (!id) return null;
+        const product = await prisma.product.findUnique({ where: { id } });
+        if (!product) return null;
+        return transformProductForClient(product);
+    },
+);
 
-export const getAllProductIds = async (): Promise<{ id: string }[]> => {
+export const getRelatedProducts = cache(
+    async (category: string, excludeId: string): Promise<Product[]> => {
+        const products = await prisma.product.findMany({
+            where: { category, id: { not: excludeId } },
+            take: 4,
+            orderBy: { popularity: 'desc' },
+        });
+        return products.map(transformProductForClient);
+    },
+);
+
+export const getAllProductIds = cache(async (): Promise<{ id: string }[]> => {
+    return prisma.product.findMany({ select: { id: true } });
+});
+
+export const getPromoProducts = cache(async (): Promise<Product[]> => {
     const products = await prisma.product.findMany({
-        select: {
-            id: true,
-        },
-    });
-    return products;
-};
-
-export const getPromoProducts = (): Promise<Product[]> => {
-    return unstable_cache(
-        async () => {
-            const products = await prisma.product.findMany({
-                where: { isPromo: true },
-                take: 10,
-            });
-            return products.map(transformProductForClient);
-        },
-        ['promo-products'],
-        {
-            tags: ['products:promo'],
-            revalidate: 3600,
-        },
-    )();
-};
-
-export const getFeaturedProducts = (): Promise<Product[]> => {
-    return unstable_cache(
-        async () => {
-            const products = await prisma.product.findMany({
-                where: { isFeatured: true },
-                take: 12,
-            });
-            return products.map(transformProductForClient);
-        },
-        ['featured-products'],
-        {
-            tags: ['products:featured'],
-            revalidate: 3600,
-        },
-    )();
-};
-
-export const getProductsForAdmin = async (): Promise<Product[]> => {
-    const products = await prisma.product.findMany({
-        orderBy: {
-            createdAt: 'desc',
-        },
-    });
-
-    return products.map(transformProductForClient);
-};
-
-export const getProductsForSettings = async (): Promise<Product[]> => {
-    const products = await prisma.product.findMany({
-        orderBy: {
-            name: 'asc',
-        },
+        where: { isPromo: true },
+        take: 10,
+        orderBy: { popularity: 'desc' },
     });
     return products.map(transformProductForClient);
-};
+});
+
+export const getFeaturedProducts = cache(async (): Promise<Product[]> => {
+    const products = await prisma.product.findMany({
+        where: { isFeatured: true },
+        take: 12,
+        orderBy: { popularity: 'desc' },
+    });
+    return products.map(transformProductForClient);
+});
+
+// These functions are for the admin dashboard and don't need caching
+// as they should always show the freshest data.
+export async function getProductsForAdmin(): Promise<Product[]> {
+    const products = await prisma.product.findMany({
+        orderBy: { createdAt: 'desc' },
+    });
+    return products.map(transformProductForClient);
+}
+
+export async function getProductsForSettings(): Promise<Product[]> {
+    const products = await prisma.product.findMany({
+        orderBy: { name: 'asc' },
+    });
+    return products.map(transformProductForClient);
+}

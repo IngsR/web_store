@@ -35,6 +35,45 @@ export async function GET(
     }
 }
 
+/**
+ * Menangani pembaruan gambar: menghapus gambar lama yang tidak digunakan,
+ * mengunggah gambar baru, dan mengembalikan daftar URL gambar final.
+ * @param oldImageUrls - Array URL gambar yang ada saat ini.
+ * @param newImageSources - Array sumber gambar baru (URL atau base64).
+ * @returns Daftar URL gambar yang sudah diperbarui.
+ */
+async function handleImageUpdates(
+    oldImageUrls: string[],
+    newImageSources: (string | undefined)[] | undefined,
+): Promise<string[]> {
+    const newImages = Array.isArray(newImageSources) ? newImageSources : [];
+
+    const keptImageUrls = newImages.filter(
+        (src): src is string =>
+            typeof src === 'string' && src.startsWith('http'),
+    );
+
+    const imagesToDelete = oldImageUrls.filter(
+        (url) => !keptImageUrls.includes(url),
+    );
+
+    const imagesToUpload = newImages.filter(
+        (src): src is string =>
+            typeof src === 'string' && src.startsWith('data:image'),
+    );
+
+    const [uploadedImageUrls] = await Promise.all([
+        Promise.all(
+            imagesToUpload.map((base64) =>
+                uploadImageFromBase64(base64, 'products'),
+            ),
+        ),
+        Promise.all(imagesToDelete.map(deleteImage)),
+    ]);
+
+    return [...keptImageUrls, ...uploadedImageUrls];
+}
+
 export async function PUT(
     request: Request,
     { params }: { params: { id: string } },
@@ -62,6 +101,7 @@ export async function PUT(
 
         const existingProduct = await prisma.product.findUnique({
             where: { id: params.id },
+            select: { images: true },
         });
 
         if (!existingProduct) {
@@ -71,45 +111,23 @@ export async function PUT(
             );
         }
 
-        const oldImageUrls = existingProduct.images
-            ? existingProduct.images.split(',')
-            : [];
-        const keptImageUrls = (newImageSources || []).filter((src: string) =>
-            src.startsWith('http'),
+        const finalImageUrls = await handleImageUpdates(
+            existingProduct.images || [],
+            newImageSources,
         );
-
-        const imagesToDelete = oldImageUrls.filter(
-            (url: string) => !keptImageUrls.includes(url),
-        );
-        if (imagesToDelete.length > 0) {
-            await Promise.all(
-                imagesToDelete.map((url: string) => deleteImage(url)),
-            );
-        }
-
-        const imagesToUpload = (newImageSources || []).filter((src: string) =>
-            src.startsWith('data:image'),
-        );
-
-        const uploadedImageUrls = await Promise.all(
-            imagesToUpload.map((base64: string) =>
-                uploadImageFromBase64(base64, 'products'),
-            ),
-        );
-
-        const finalImageUrls = [...keptImageUrls, ...uploadedImageUrls];
 
         const updatedProduct = await prisma.product.update({
             where: { id: params.id },
             data: {
                 ...productData,
 
-                images: finalImageUrls.join(','),
+                images: finalImageUrls,
             },
         });
 
-        const clientSafeProduct = transformProductForClient(updatedProduct);
-        return NextResponse.json(clientSafeProduct);
+        const clientSafeProductResponse =
+            transformProductForClient(updatedProduct);
+        return NextResponse.json(clientSafeProductResponse);
     } catch (error) {
         console.error('Failed to update product:', error);
         return NextResponse.json(
@@ -129,22 +147,27 @@ export async function DELETE(
     }
 
     try {
-        const deletedProduct = await prisma.product.delete({
+        const productToDelete = await prisma.product.findUnique({
             where: { id: params.id },
+            select: { images: true },
         });
 
-        if (deletedProduct.images && deletedProduct.images.length > 0) {
+        if (!productToDelete) {
+            return new NextResponse(null, { status: 204 });
+        }
+
+        if (productToDelete.images && productToDelete.images.length > 0) {
             try {
-                // Ubah string gambar yang dipisahkan koma menjadi array
-                const imageUrls = deletedProduct.images.split(',');
-                await Promise.all(imageUrls.map(deleteImage));
+                await Promise.all(productToDelete.images.map(deleteImage));
             } catch (imageError) {
                 console.error(
-                    `Failed to delete images for product ${deletedProduct.id}:`,
+                    `Could not delete all images for product ${params.id}. Proceeding with DB deletion.`,
                     imageError,
                 );
             }
         }
+
+        await prisma.product.delete({ where: { id: params.id } });
 
         return new NextResponse(null, { status: 204 });
     } catch (error) {

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import {
     getAllProductIds,
@@ -30,6 +31,25 @@ export async function generateStaticParams() {
 // ✅ Gunakan interface yang kompatibel dengan Next.js
 interface PageProps {
     params: { id: string };
+    searchParams: { [key: string]: string | string[] | undefined };
+}
+
+// ✅ Tambahkan generateMetadata untuk SEO dan type-hinting yang lebih baik
+export async function generateMetadata({
+    params,
+}: PageProps): Promise<Metadata> {
+    const product = await getProductById(params.id);
+
+    if (!product) {
+        return {
+            title: 'Product Not Found',
+        };
+    }
+
+    return {
+        title: `${product.name} | Ing Store`,
+        description: product.description,
+    };
 }
 
 // ✅ Jadikan komponen halaman sebagai fungsi async tunggal untuk menyederhanakan struktur

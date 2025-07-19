@@ -12,6 +12,11 @@ import { useAuth } from '@/hooks/use-auth';
 
 export type CartItem = Product & { quantity: number };
 
+interface CartAPIResponseItem {
+    quantity: number;
+    product: Product;
+}
+
 interface CartContextType {
     cartItems: CartItem[];
     addToCart: (product: Product) => void;
@@ -45,12 +50,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 credentials: 'include',
             });
             if (res.ok) {
-                const data = await res.json();
+                const data: CartAPIResponseItem[] = await res.json();
                 setCartItems(
-                    data.map((item: any) => ({
+                    data.map((item) => ({
                         ...item.product,
-                        // API seharusnya sudah mengembalikan `images` sebagai array.
-                        images: item.product.images,
                         quantity: item.quantity,
                     })),
                 );

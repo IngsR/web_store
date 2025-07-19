@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { getServerSession } from '@/lib/auth.server';
 import { uploadImageFromBase64 } from '@/lib/blob-storage';
 import { transformProductForClient } from '@/lib/data/transform';
@@ -9,14 +10,59 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET: Mengambil semua produk dari database.
- * Digunakan oleh halaman dashboard admin untuk menampilkan daftar produk.
+ * Mendukung pemfilteran, pencarian, dan pengurutan untuk halaman produk publik.
  */
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const searchQuery = searchParams.get('q');
+        const categories = searchParams.getAll('category');
+        const priceMin = searchParams.get('priceMin');
+        const priceMax = searchParams.get('priceMax');
+        const sortBy = searchParams.get('sortBy') || 'popularity';
+
+        const where: Prisma.ProductWhereInput = {};
+
+        if (searchQuery) {
+            where.OR = [
+                { name: { contains: searchQuery, mode: 'insensitive' } },
+                { description: { contains: searchQuery, mode: 'insensitive' } },
+            ];
+        }
+
+        if (categories.length > 0) {
+            where.category = { in: categories };
+        }
+
+        if (priceMin || priceMax) {
+            where.price = {};
+            if (priceMin) {
+                where.price.gte = Number(priceMin);
+            }
+            if (priceMax) {
+                where.price.lte = Number(priceMax);
+            }
+        }
+
+        let orderBy: Prisma.ProductOrderByWithRelationInput = {};
+        switch (sortBy) {
+            case 'price-asc':
+                orderBy = { price: 'asc' };
+                break;
+            case 'price-desc':
+                orderBy = { price: 'desc' };
+                break;
+            case 'newest':
+                orderBy = { releaseDate: 'desc' };
+                break;
+            default: // 'popularity'
+                orderBy = { popularity: 'desc' };
+                break;
+        }
+
         const products = await prisma.product.findMany({
-            orderBy: {
-                createdAt: 'desc',
-            },
+            where,
+            orderBy,
         });
 
         return NextResponse.json(products.map(transformProductForClient));
@@ -64,13 +110,13 @@ export async function POST(request: Request) {
         const newProduct = await prisma.product.create({
             data: {
                 ...productData,
-                // Gabungkan array URL menjadi satu string, karena skema DB adalah String
-                images: imageUrls.join(','),
+                images: imageUrls,
                 releaseDate: new Date(),
             },
         });
 
-        return NextResponse.json(newProduct, { status: 201 });
+        const clientSafeProduct = transformProductForClient(newProduct);
+        return NextResponse.json(clientSafeProduct, { status: 201 });
     } catch (error) {
         console.error('Failed to create product:', error);
         return NextResponse.json(

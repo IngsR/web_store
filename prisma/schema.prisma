@@ -62,8 +62,8 @@ model Product {
   description     String
   longDescription String
   price           Float
-  discountPrice   Float?
-  images          String   
+  discountPrice   Float? 
+  images          String[]
   category        String
   fuelType        FuelType?
   condition       Condition @default(Baru)
