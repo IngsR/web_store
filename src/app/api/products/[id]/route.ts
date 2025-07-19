@@ -2,12 +2,15 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { getServerSession } from '@/lib/auth.server';
-import { productUpdateSchema } from '@/lib/schemas/product';
+import { productUpdateApiSchema } from '@/lib/schemas/product';
 import { deleteImage, uploadImageFromBase64 } from '@/lib/blob-storage';
 import { transformProductForClient } from '@/lib/data/transform';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * GET: Mengambil data satu produk berdasarkan ID.
+ */
 export async function GET(
     request: Request,
     { params }: { params: { id: string } },
@@ -36,11 +39,10 @@ export async function GET(
 }
 
 /**
- * Menangani pembaruan gambar: menghapus gambar lama yang tidak digunakan,
- * mengunggah gambar baru, dan mengembalikan daftar URL gambar final.
- * @param oldImageUrls - Array URL gambar yang ada saat ini.
- * @param newImageSources - Array sumber gambar baru (URL atau base64).
- * @returns Daftar URL gambar yang sudah diperbarui.
+ * Helper untuk menangani pembaruan gambar:
+ * - Menghapus gambar lama yang tidak lagi ada di daftar baru.
+ * - Mengunggah gambar baru (base64).
+ * - Mengembalikan daftar URL gambar final.
  */
 async function handleImageUpdates(
     oldImageUrls: string[],
@@ -48,20 +50,22 @@ async function handleImageUpdates(
 ): Promise<string[]> {
     const newImages = Array.isArray(newImageSources) ? newImageSources : [];
 
+    // Pisahkan mana gambar yang dipertahankan (URL lama) dan mana yang baru (base64)
     const keptImageUrls = newImages.filter(
         (src): src is string =>
             typeof src === 'string' && src.startsWith('http'),
     );
-
-    const imagesToDelete = oldImageUrls.filter(
-        (url) => !keptImageUrls.includes(url),
-    );
-
     const imagesToUpload = newImages.filter(
         (src): src is string =>
             typeof src === 'string' && src.startsWith('data:image'),
     );
 
+    // Tentukan gambar mana yang harus dihapus dari blob storage
+    const imagesToDelete = oldImageUrls.filter(
+        (url) => !keptImageUrls.includes(url),
+    );
+
+    // Lakukan operasi upload dan delete secara paralel
     const [uploadedImageUrls] = await Promise.all([
         Promise.all(
             imagesToUpload.map((base64) =>
@@ -74,18 +78,21 @@ async function handleImageUpdates(
     return [...keptImageUrls, ...uploadedImageUrls];
 }
 
+/**
+ * PUT: Memperbarui produk yang ada.
+ */
 export async function PUT(
     request: Request,
     { params }: { params: { id: string } },
 ) {
     const session = await getServerSession();
-    if (!session || session.user.role !== 'admin') {
+    if (session?.user?.role !== 'admin') {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     try {
         const body = await request.json();
-        const validation = productUpdateSchema.safeParse(body);
+        const validation = productUpdateApiSchema.safeParse(body);
 
         if (!validation.success) {
             return NextResponse.json(
@@ -112,24 +119,18 @@ export async function PUT(
         }
 
         const finalImageUrls = await handleImageUpdates(
-            existingProduct.images || [],
+            existingProduct.images,
             newImageSources,
         );
 
         const updatedProduct = await prisma.product.update({
             where: { id: params.id },
-            data: {
-                ...productData,
-
-                images: finalImageUrls,
-            },
+            data: { ...productData, images: finalImageUrls },
         });
 
-        const clientSafeProductResponse =
-            transformProductForClient(updatedProduct);
-        return NextResponse.json(clientSafeProductResponse);
+        return NextResponse.json(transformProductForClient(updatedProduct));
     } catch (error) {
-        console.error('Failed to update product:', error);
+        console.error(`Failed to update product ${params.id}:`, error);
         return NextResponse.json(
             { message: 'Internal Server Error' },
             { status: 500 },
@@ -137,49 +138,31 @@ export async function PUT(
     }
 }
 
+/**
+ * DELETE: Menghapus produk.
+ */
 export async function DELETE(
     request: Request,
     { params }: { params: { id: string } },
 ) {
     const session = await getServerSession();
-    if (!session || session.user.role !== 'admin') {
+    if (session?.user?.role !== 'admin') {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     try {
-        const productToDelete = await prisma.product.findUnique({
+        const product = await prisma.product.findUnique({
             where: { id: params.id },
-            select: { images: true },
         });
 
-        if (!productToDelete) {
-            return new NextResponse(null, { status: 204 });
-        }
-
-        if (productToDelete.images && productToDelete.images.length > 0) {
-            try {
-                await Promise.all(productToDelete.images.map(deleteImage));
-            } catch (imageError) {
-                console.error(
-                    `Could not delete all images for product ${params.id}. Proceeding with DB deletion.`,
-                    imageError,
-                );
-            }
+        if (product?.images?.length) {
+            await Promise.all(product.images.map(deleteImage));
         }
 
         await prisma.product.delete({ where: { id: params.id } });
 
-        return new NextResponse(null, { status: 204 });
+        return new NextResponse(null, { status: 204 }); // No Content
     } catch (error) {
-        if (
-            error instanceof Prisma.PrismaClientKnownRequestError &&
-            error.code === 'P2025'
-        ) {
-            return NextResponse.json(
-                { message: 'Product not found' },
-                { status: 404 },
-            );
-        }
         console.error(`Failed to delete product ${params.id}:`, error);
         return NextResponse.json(
             { message: 'Internal Server Error' },

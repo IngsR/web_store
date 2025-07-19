@@ -35,27 +35,31 @@ export const productCoreSchema = z.object({
     popularity: z.coerce.number().min(0).max(100).default(80),
 });
 
-export const productCreateSchema = productCoreSchema
+export const productFormSchema = productCoreSchema
     .extend({
         images: z
-            .array(
-                z.string().startsWith('data:image', {
-                    message: 'Only new image uploads are allowed for creation.',
-                }),
-            )
+            .array(z.string())
             .min(1, { message: 'At least one image is required.' }),
     })
     .superRefine((data, ctx) => {
-        // Untuk mobil bekas, jarak tempuh wajib diisi.
-        if (data.condition === 'Bekas' && data.mileage == null) {
+        if (
+            data.condition === 'Bekas' &&
+            (data.mileage === null ||
+                data.mileage === undefined ||
+                data.mileage < 0)
+        ) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: 'Mileage is required for used cars.',
                 path: ['mileage'],
             });
         }
-        // Harga diskon harus lebih rendah dari harga asli.
-        if (data.discountPrice && data.discountPrice >= data.price) {
+
+        if (
+            data.price &&
+            data.discountPrice &&
+            data.discountPrice >= data.price
+        ) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: 'Discount price must be less than the original price.',
@@ -64,7 +68,44 @@ export const productCreateSchema = productCoreSchema
         }
     });
 
-export const productUpdateSchema = productCoreSchema
+export const productCreateApiSchema = productCoreSchema
+    .extend({
+        images: z
+            .array(
+                z.string().startsWith('data:image/', {
+                    message: 'Image must be a valid data URL',
+                }),
+            )
+            .min(1, { message: 'At least one image is required.' }),
+    })
+    .superRefine((data, ctx) => {
+        // Apply the same refinements as the form schema
+        if (
+            data.condition === 'Bekas' &&
+            (data.mileage === null ||
+                data.mileage === undefined ||
+                data.mileage < 0)
+        ) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Mileage is required for used cars.',
+                path: ['mileage'],
+            });
+        }
+        if (
+            data.price &&
+            data.discountPrice &&
+            data.discountPrice >= data.price
+        ) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Discount price must be less than the original price.',
+                path: ['discountPrice'],
+            });
+        }
+    });
+
+export const productUpdateApiSchema = productCoreSchema
     .partial()
     .extend({
         images: z.array(z.string()).optional(),
@@ -84,5 +125,6 @@ export const productUpdateSchema = productCoreSchema
         }
     });
 
-export type ProductCreateInput = z.infer<typeof productCreateSchema>;
-export type ProductUpdateInput = z.infer<typeof productUpdateSchema>;
+export type ProductFormValues = z.infer<typeof productFormSchema>;
+export type ProductCreateInput = z.infer<typeof productCreateApiSchema>;
+export type ProductUpdateInput = z.infer<typeof productUpdateApiSchema>;

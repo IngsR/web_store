@@ -1,71 +1,30 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
 import { getServerSession } from '@/lib/auth.server';
+import { productCreateApiSchema } from '@/lib/schemas/product';
 import { uploadImageFromBase64 } from '@/lib/blob-storage';
 import { transformProductForClient } from '@/lib/data/transform';
-import { productCreateSchema } from '@/lib/schemas/product';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * GET: Mengambil semua produk dari database.
- * Mendukung pemfilteran, pencarian, dan pengurutan untuk halaman produk publik.
+ * GET: Mengambil semua produk untuk halaman admin.
+ * Endpoint ini diamankan agar hanya bisa diakses oleh admin.
  */
 export async function GET(request: Request) {
+    const session = await getServerSession();
+    if (session?.user?.role !== 'admin') {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
-        const { searchParams } = new URL(request.url);
-        const searchQuery = searchParams.get('q');
-        const categories = searchParams.getAll('category');
-        const priceMin = searchParams.get('priceMin');
-        const priceMax = searchParams.get('priceMax');
-        const sortBy = searchParams.get('sortBy') || 'popularity';
-
-        const where: Prisma.ProductWhereInput = {};
-
-        if (searchQuery) {
-            where.OR = [
-                { name: { contains: searchQuery, mode: 'insensitive' } },
-                { description: { contains: searchQuery, mode: 'insensitive' } },
-            ];
-        }
-
-        if (categories.length > 0) {
-            where.category = { in: categories };
-        }
-
-        if (priceMin || priceMax) {
-            where.price = {};
-            if (priceMin) {
-                where.price.gte = Number(priceMin);
-            }
-            if (priceMax) {
-                where.price.lte = Number(priceMax);
-            }
-        }
-
-        let orderBy: Prisma.ProductOrderByWithRelationInput = {};
-        switch (sortBy) {
-            case 'price-asc':
-                orderBy = { price: 'asc' };
-                break;
-            case 'price-desc':
-                orderBy = { price: 'desc' };
-                break;
-            case 'newest':
-                orderBy = { releaseDate: 'desc' };
-                break;
-            default: // 'popularity'
-                orderBy = { popularity: 'desc' };
-                break;
-        }
-
         const products = await prisma.product.findMany({
-            where,
-            orderBy,
+            orderBy: {
+                createdAt: 'desc',
+            },
         });
-
-        return NextResponse.json(products.map(transformProductForClient));
+        const clientSafeProducts = products.map(transformProductForClient);
+        return NextResponse.json(clientSafeProducts);
     } catch (error) {
         console.error('Failed to fetch products:', error);
         return NextResponse.json(
@@ -77,7 +36,6 @@ export async function GET(request: Request) {
 
 /**
  * POST: Membuat produk baru.
- * Menerima data dari form, memvalidasi, mengunggah gambar, dan menyimpan ke database.
  */
 export async function POST(request: Request) {
     const session = await getServerSession();
@@ -87,12 +45,12 @@ export async function POST(request: Request) {
 
     try {
         const body = await request.json();
-        const validation = productCreateSchema.safeParse(body);
+        const validation = productCreateApiSchema.safeParse(body);
 
         if (!validation.success) {
             return NextResponse.json(
                 {
-                    message: 'Invalid input',
+                    message: 'Input tidak valid',
                     errors: validation.error.flatten(),
                 },
                 { status: 400 },
@@ -102,7 +60,7 @@ export async function POST(request: Request) {
         const { images, ...productData } = validation.data;
 
         const imageUrls = await Promise.all(
-            images.map((base64Image) =>
+            images.map((base64Image: string) =>
                 uploadImageFromBase64(base64Image, 'products'),
             ),
         );
@@ -111,7 +69,7 @@ export async function POST(request: Request) {
             data: {
                 ...productData,
                 images: imageUrls,
-                releaseDate: new Date(),
+                releaseDate: new Date(), // Fulfill the required field
             },
         });
 

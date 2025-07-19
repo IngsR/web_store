@@ -18,7 +18,7 @@ import {
     CardTitle,
     CardDescription,
 } from '@/components/ui/card';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { Loader2, MoreHorizontal, PlusCircle } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -60,6 +60,7 @@ export default function AdminProductsPageClient({
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedProduct, setSelectedProduct] =
         React.useState<Product | null>(null);
+    const [isDeleting, setIsDeleting] = React.useState(false);
     const [productToDelete, setProductToDelete] = React.useState<string | null>(
         null,
     );
@@ -92,6 +93,7 @@ export default function AdminProductsPageClient({
     const handleDelete = async () => {
         if (!productToDelete) return;
 
+        setIsDeleting(true);
         try {
             const res = await fetch(`/api/products/${productToDelete}`, {
                 method: 'DELETE',
@@ -121,6 +123,7 @@ export default function AdminProductsPageClient({
                 variant: 'destructive',
             });
         } finally {
+            setIsDeleting(false);
             setIsDeleteDialogOpen(false);
             setProductToDelete(null);
         }
@@ -308,9 +311,17 @@ export default function AdminProductsPageClient({
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete}>
-                            Continue
+                        <AlertDialogCancel disabled={isDeleting}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting && (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            {isDeleting ? 'Deleting...' : 'Continue'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
