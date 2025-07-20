@@ -6,13 +6,13 @@ import ProductCard from '@/components/product-card';
 import ProductFilters from '@/components/product-filters';
 import type { Product } from '@/lib/types';
 
-const ALL_CATEGORIES = ['SUV', 'Sedan', 'Hatchback', 'MPV', 'Sport', 'Listrik'];
-const MAX_PRICE = 5000000000;
+const MAX_PRICE = 35000000000;
 
 export default function ProductsPage() {
     const searchParams = useSearchParams();
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [allCategories, setAllCategories] = useState<string[]>([]);
 
     const [filters, setFilters] = useState({
         categories: searchParams.get('category')
@@ -57,6 +57,21 @@ export default function ProductsPage() {
     }, [fetchProducts]);
 
     useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch('/api/products/categories');
+                if (res.ok) {
+                    const data = await res.json();
+                    setAllCategories(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch categories:', error);
+            }
+        };
+        fetchCategories();
+    }, []);
+
+    useEffect(() => {
         setSearchQuery(searchParams.get('q') || '');
     }, [searchParams]);
 
@@ -77,7 +92,7 @@ export default function ProductsPage() {
                     setFilters={setFilters}
                     sortBy={sortBy}
                     setSortBy={setSortBy}
-                    categories={ALL_CATEGORIES}
+                    categories={allCategories}
                     maxPrice={MAX_PRICE}
                     resultsCount={products.length}
                 />
