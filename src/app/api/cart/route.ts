@@ -1,147 +1,162 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth.server';
+import { z } from 'zod';
 
-// Get cart items
-export async function GET(req: NextRequest) {
+export const dynamic = 'force-dynamic';
+
+async function getUserId() {
+    const session = await getServerSession();
+    return session?.user?.id;
+}
+
+/**
+ * GET: Mengambil semua item di keranjang pengguna.
+ */
+export async function GET() {
+    const userId = await getUserId();
+    if (!userId) {
+        return NextResponse.json([]);
+    }
+
     try {
-        const session = await getServerSession();
-        if (!session?.user?.id) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 },
-            );
-        }
-
         const cartItems = await prisma.cartItem.findMany({
-            where: { userId: session.user.id },
-            include: { product: true },
+            where: { userId },
+            include: {
+                product: true,
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
         });
-
         return NextResponse.json(cartItems);
     } catch (error) {
-        console.error('Failed to fetch cart items:', error);
+        console.error('Failed to fetch cart:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { message: 'Internal Server Error' },
             { status: 500 },
         );
     }
 }
 
-// Add item to cart
-export async function POST(req: NextRequest) {
+/**
+ * POST: Menambahkan item ke keranjang atau menambah kuantitas jika sudah ada.
+ */
+const postSchema = z.object({
+    productId: z.string(),
+    quantity: z.number().int().min(1),
+});
+
+export async function POST(request: Request) {
+    const userId = await getUserId();
+    if (!userId) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
-        const session = await getServerSession();
-        if (!session?.user?.id) {
+        const body = await request.json();
+        const validation = postSchema.safeParse(body);
+        if (!validation.success) {
             return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 },
+                { message: 'Invalid input' },
+                { status: 400 },
             );
         }
+        const { productId, quantity } = validation.data;
 
-        const { productId, quantity = 1 } = await req.json();
-
-        // Check if item already exists in cart
-        const existingItem = await prisma.cartItem.findUnique({
+        const cartItem = await prisma.cartItem.upsert({
             where: {
-                userId_productId: {
-                    userId: session.user.id,
-                    productId,
+                userId_productId: { userId, productId },
+            },
+            update: {
+                quantity: {
+                    increment: quantity,
                 },
+            },
+            create: {
+                userId,
+                productId,
+                quantity,
             },
         });
 
-        let cartItem;
-        if (existingItem) {
-            // Update quantity
-            cartItem = await prisma.cartItem.update({
-                where: { id: existingItem.id },
-                data: { quantity: existingItem.quantity + quantity },
-                include: { product: true },
-            });
-        } else {
-            // Create new cart item
-            cartItem = await prisma.cartItem.create({
-                data: {
-                    userId: session.user.id,
-                    productId,
-                    quantity,
-                },
-                include: { product: true },
-            });
-        }
-
-        return NextResponse.json(cartItem);
+        return NextResponse.json(cartItem, { status: 200 });
     } catch (error) {
-        console.error('Failed to add item to cart:', error);
+        console.error('Failed to add to cart:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { message: 'Internal Server Error' },
             { status: 500 },
         );
     }
 }
 
-// Update cart item
-export async function PUT(req: NextRequest) {
+/**
+ * PUT: Memperbarui kuantitas item di keranjang.
+ */
+const putSchema = z.object({
+    productId: z.string(),
+    quantity: z.number().int().min(1),
+});
+
+export async function PUT(request: Request) {
+    const userId = await getUserId();
+    if (!userId) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
-        const session = await getServerSession();
-        if (!session?.user?.id) {
+        const body = await request.json();
+        const validation = putSchema.safeParse(body);
+        if (!validation.success) {
             return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 },
+                { message: 'Invalid input' },
+                { status: 400 },
             );
         }
+        const { productId, quantity } = validation.data;
 
-        const { productId, quantity } = await req.json();
-
-        const cartItem = await prisma.cartItem.update({
-            where: {
-                userId_productId: {
-                    userId: session.user.id,
-                    productId,
-                },
-            },
+        const result = await prisma.cartItem.updateMany({
+            where: { userId, productId },
             data: { quantity },
-            include: { product: true },
         });
 
-        return NextResponse.json(cartItem);
+        if (result.count === 0) {
+            return NextResponse.json(
+                { message: 'Item not found in cart' },
+                { status: 404 },
+            );
+        }
+
+        return NextResponse.json({ message: 'Cart updated successfully' });
     } catch (error) {
-        console.error('Failed to update cart item:', error);
+        console.error('Failed to update cart:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { message: 'Internal Server Error' },
             { status: 500 },
         );
     }
 }
 
-// Delete cart item
-export async function DELETE(req: NextRequest) {
+/**
+ * DELETE: Menghapus item dari keranjang.
+ */
+export async function DELETE(request: Request) {
+    const userId = await getUserId();
+    if (!userId) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
-        const session = await getServerSession();
-        if (!session?.user?.id) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 },
-            );
-        }
-
-        const { productId } = await req.json();
-
-        await prisma.cartItem.delete({
-            where: {
-                userId_productId: {
-                    userId: session.user.id,
-                    productId,
-                },
-            },
+        const { productId } = await request.json();
+        await prisma.cartItem.deleteMany({
+            where: { userId, productId },
         });
 
-        return NextResponse.json({ success: true });
+        return new NextResponse(null, { status: 204 });
     } catch (error) {
-        console.error('Failed to delete cart item:', error);
+        console.error('Failed to delete from cart:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { message: 'Internal Server Error' },
             { status: 500 },
         );
     }

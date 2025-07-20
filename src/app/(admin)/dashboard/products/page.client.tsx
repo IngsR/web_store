@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import {
     Table,
     TableBody,
@@ -56,6 +57,7 @@ export default function AdminProductsPageClient({
     initialProducts: Product[];
 }) {
     const [products, setProducts] = React.useState<Product[]>(initialProducts);
+    const router = useRouter();
     const [isFormOpen, setIsFormOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedProduct, setSelectedProduct] =
@@ -66,20 +68,9 @@ export default function AdminProductsPageClient({
     );
     const { toast } = useToast();
 
-    const refreshProducts = React.useCallback(async () => {
-        try {
-            const res = await fetch('/api/products', {
-                cache: 'no-store', // Mencegah caching dan memastikan data selalu baru
-                credentials: 'include',
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setProducts(data);
-            }
-        } catch (error) {
-            console.error('Failed to refresh products', error);
-        }
-    }, []);
+    React.useEffect(() => {
+        setProducts(initialProducts);
+    }, [initialProducts]);
 
     const handleEdit = (product: Product) => {
         setSelectedProduct(product);
@@ -107,7 +98,7 @@ export default function AdminProductsPageClient({
                     description: 'Product deleted successfully.',
                     variant: 'success',
                 });
-                refreshProducts(); // Refresh list
+                router.refresh();
             } else {
                 const errorData = await res.json();
                 toast({
@@ -136,7 +127,7 @@ export default function AdminProductsPageClient({
     };
 
     const onFormSubmitSuccess = () => {
-        refreshProducts();
+        router.refresh();
         setIsFormOpen(false);
         setSelectedProduct(null);
     };

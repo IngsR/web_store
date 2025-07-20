@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -20,8 +21,14 @@ export default function SettingsPageClient({
     initialProducts: Product[];
 }) {
     const { toast } = useToast();
+    const router = useRouter();
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [isSaving, setIsSaving] = useState(false);
+
+    // Sync local state with server-provided props when they change
+    useEffect(() => {
+        setProducts(initialProducts);
+    }, [initialProducts]);
 
     const handleToggle = (
         productId: string,
@@ -62,6 +69,7 @@ export default function SettingsPageClient({
                     description: 'Homepage settings have been updated.',
                     variant: 'success',
                 });
+                router.refresh();
             } else {
                 const errorData = await res.json();
                 toast({
