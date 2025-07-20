@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useContext } from 'react';
+import { useState } from 'react';
+import Link from 'next/link';
 import { Loader2, ShoppingCart, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/use-cart';
+import { useAuth } from '@/hooks/use-auth';
 import type { Product } from '@/lib/types';
 
 interface AddToCartButtonProps {
@@ -15,10 +17,28 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [isAdded, setIsAdded] = useState(false);
     const { toast } = useToast();
-    const { addToCart } = useCart();
+    const { addToCart, loading } = useCart();
+    const { isAuthenticated } = useAuth();
 
     const handleAddToCart = async () => {
         if (isAdded) return;
+
+        // ✅ FIX: Check if user is authenticated before proceeding
+        if (!isAuthenticated) {
+            toast({
+                title: 'Login Diperlukan',
+                description:
+                    'Anda harus login untuk menambahkan item ke keranjang.',
+                variant: 'destructive',
+                action: (
+                    <Button asChild variant="outline">
+                        <Link href="/login">Login</Link>
+                    </Button>
+                ),
+            });
+            return;
+        }
+
         setIsLoading(true);
 
         try {
@@ -45,7 +65,7 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
 
     return (
         <Button
-            onClick={handleAddToCart}
+            onClick={handleAddToCart} // No changes needed here
             disabled={isLoading || isAdded}
             size="lg"
             className="w-full md:flex-1"

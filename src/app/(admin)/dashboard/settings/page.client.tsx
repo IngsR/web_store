@@ -25,7 +25,6 @@ export default function SettingsPageClient({
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Sync local state with server-provided props when they change
     useEffect(() => {
         setProducts(initialProducts);
     }, [initialProducts]);
