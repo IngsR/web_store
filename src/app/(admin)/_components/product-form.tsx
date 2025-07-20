@@ -137,6 +137,7 @@ export default function ProductForm({
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
+                credentials: 'include', // Kirim cookie sesi untuk otentikasi
             });
 
             if (res.ok) {
