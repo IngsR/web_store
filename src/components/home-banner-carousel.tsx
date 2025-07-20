@@ -13,15 +13,15 @@ import {
 // Anda bisa menyesuaikan daftar gambar banner di sini
 const bannerImages = [
     {
-        src: '/banners/banner-company.jpg',
+        src: '/home/banner-company.jpg',
         alt: 'Banner promosi mobil terbaru',
     },
     {
-        src: '/banners/banner-promo.jpg',
+        src: '/home/banner-company1.jpg',
         alt: 'Penawaran spesial untuk model SUV',
     },
     {
-        src: '/banners/banner-family.jpg',
+        src: '/home/banner-company2.jpg',
         alt: 'Mobil keluarga yang nyaman dan aman',
     },
 ];
