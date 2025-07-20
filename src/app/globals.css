@@ -60,6 +60,17 @@
 }
 
 @layer utilities {
+    /* Hide arrows from number input */
+    .no-spinner::-webkit-outer-spin-button,
+    .no-spinner::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .no-spinner {
+        -moz-appearance: textfield;
+    }
+
     @keyframes jump {
         0%,
         80%,

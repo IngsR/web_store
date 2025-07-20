@@ -4,14 +4,8 @@ import ProductCard from '@/components/product-card';
 import { ChevronRight } from 'lucide-react';
 import PromoProductCard from '@/components/promo-product-card';
 import HomeBannerCarousel from '@/components/home-banner-carousel';
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from '@/components/ui/carousel';
 import { getFeaturedProducts, getPromoProducts } from '@/lib/data/products';
+import PromoCarousel from './promo-carousel';
 
 export const revalidate = 3600;
 
@@ -43,38 +37,7 @@ export default async function HomePage() {
                             untuk Anda. Jangan sampai terlewat!
                         </p>
                     </div>
-                    {promoProducts.length === 0 ? (
-                        <div className="flex items-center justify-center h-40 text-muted-foreground">
-                            Belum ada mobil promo saat ini.
-                        </div>
-                    ) : (
-                        <div className="relative w-full px-12">
-                            <Carousel
-                                opts={{
-                                    align: 'start',
-                                    loop: promoProducts.length > 4,
-                                }}
-                                className="w-full"
-                            >
-                                <CarouselContent className="-ml-4">
-                                    {promoProducts.map((product) => (
-                                        <CarouselItem
-                                            key={product.id}
-                                            className="pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4"
-                                        >
-                                            <div className="p-1 h-full aspect-[3/4]">
-                                                <PromoProductCard
-                                                    product={product}
-                                                />
-                                            </div>
-                                        </CarouselItem>
-                                    ))}
-                                </CarouselContent>
-                                <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2" />
-                                <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2" />
-                            </Carousel>
-                        </div>
-                    )}
+                    <PromoCarousel products={promoProducts} />
                 </div>
             </section>
 

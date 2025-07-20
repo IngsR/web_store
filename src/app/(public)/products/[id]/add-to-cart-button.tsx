@@ -31,7 +31,7 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
                     'Anda harus login untuk menambahkan item ke keranjang.',
                 variant: 'destructive',
                 action: (
-                    <Button asChild variant="outline">
+                    <Button asChild variant="secondary">
                         <Link href="/login">Login</Link>
                     </Button>
                 ),
