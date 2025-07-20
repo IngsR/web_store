@@ -4,6 +4,7 @@ import { getServerSession } from '@/lib/auth.server';
 import { productUpdateApiSchema } from '@/lib/schemas/product';
 import { deleteImage, uploadImageFromBase64 } from '@/lib/blob-storage';
 import { transformProductForClient } from '@/lib/data/transform';
+import { revalidateProduct } from '@/lib/actions/revalidate';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +50,6 @@ async function handleImageUpdates(
 ): Promise<string[]> {
     const newImages = Array.isArray(newImageSources) ? newImageSources : [];
 
-    // Pisahkan mana gambar yang dipertahankan (URL lama) dan mana yang baru (base64)
     const keptImageUrls = newImages.filter(
         (src): src is string =>
             typeof src === 'string' && src.startsWith('http'),
@@ -59,12 +59,10 @@ async function handleImageUpdates(
             typeof src === 'string' && src.startsWith('data:image'),
     );
 
-    // Tentukan gambar mana yang harus dihapus dari blob storage
     const imagesToDelete = oldImageUrls.filter(
         (url) => !keptImageUrls.includes(url),
     );
 
-    // Lakukan operasi upload dan delete secara paralel
     const [uploadedImageUrls] = await Promise.all([
         Promise.all(
             imagesToUpload.map((base64) =>
@@ -117,13 +115,11 @@ export async function PUT(
             );
         }
 
-        // Buat objek data untuk pembaruan
         const dataToUpdate: import('@prisma/client').Prisma.ProductUpdateInput =
             {
                 ...productData,
             };
 
-        // Hanya proses gambar jika ada di dalam request
         if (newImageSources !== undefined) {
             const finalImageUrls = await handleImageUpdates(
                 existingProduct.images,
@@ -136,6 +132,8 @@ export async function PUT(
             where: { id: params.id },
             data: dataToUpdate,
         });
+
+        await revalidateProduct(params.id);
 
         return NextResponse.json(transformProductForClient(updatedProduct));
     } catch (error) {
@@ -170,7 +168,9 @@ export async function DELETE(
 
         await prisma.product.delete({ where: { id: params.id } });
 
-        return new NextResponse(null, { status: 204 }); // No Content
+        await revalidateProduct(params.id);
+
+        return new NextResponse(null, { status: 204 });
     } catch (error) {
         console.error(`Failed to delete product ${params.id}:`, error);
         return NextResponse.json(

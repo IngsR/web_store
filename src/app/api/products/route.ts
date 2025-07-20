@@ -5,6 +5,7 @@ import type { Prisma } from '@prisma/client';
 import { productCreateApiSchema } from '@/lib/schemas/product';
 import { uploadImageFromBase64 } from '@/lib/blob-storage';
 import { transformProductForClient } from '@/lib/data/transform';
+import { revalidateProduct } from '@/lib/actions/revalidate';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,7 +42,6 @@ export async function GET(request: Request) {
             });
         }
 
-        // Filter berdasarkan harga, mempertimbangkan harga normal dan harga diskon
         (where.AND as Prisma.ProductWhereInput[]).push({
             OR: [
                 {
@@ -127,9 +127,11 @@ export async function POST(request: Request) {
             data: {
                 ...productData,
                 images: imageUrls,
-                releaseDate: new Date(), // Fulfill the required field
+                releaseDate: new Date(),
             },
         });
+
+        await revalidateProduct(newProduct.id);
 
         const clientSafeProduct = transformProductForClient(newProduct);
         return NextResponse.json(clientSafeProduct, { status: 201 });

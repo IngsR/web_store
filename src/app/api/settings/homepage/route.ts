@@ -1,15 +1,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth.server';
-import * as z from 'zod';
+import { revalidateHomepageSettings } from '@/lib/actions/revalidate';
 
 export const dynamic = 'force-dynamic';
 
-const settingsSchema = z.object({
-    featuredProductIds: z.array(z.string()),
-    promoProductIds: z.array(z.string()),
-});
-
+/**
+ * PUT: Memperbarui produk mana yang menjadi promo dan unggulan.
+ */
 export async function PUT(request: Request) {
     const session = await getServerSession();
     if (session?.user?.role !== 'admin') {
@@ -18,44 +16,37 @@ export async function PUT(request: Request) {
 
     try {
         const body = await request.json();
-        const validation = settingsSchema.safeParse(body);
+        const { featuredProductIds, promoProductIds } = body;
 
-        if (!validation.success) {
+        if (
+            !Array.isArray(featuredProductIds) ||
+            !Array.isArray(promoProductIds)
+        ) {
             return NextResponse.json(
-                {
-                    message: 'Invalid input',
-                    errors: validation.error.formErrors.fieldErrors,
-                },
+                { message: 'Invalid input' },
                 { status: 400 },
             );
         }
 
-        const { featuredProductIds, promoProductIds } = validation.data;
+        await prisma.$transaction([
+            prisma.product.updateMany({
+                data: { isFeatured: false, isPromo: false },
+            }),
 
-        await prisma.$transaction(async (tx) => {
-            await tx.product.updateMany({
-                data: {
-                    isFeatured: false,
-                    isPromo: false,
-                },
-            });
+            prisma.product.updateMany({
+                where: { id: { in: featuredProductIds } },
+                data: { isFeatured: true },
+            }),
 
-            if (featuredProductIds.length > 0) {
-                await tx.product.updateMany({
-                    where: { id: { in: featuredProductIds } },
-                    data: { isFeatured: true },
-                });
-            }
+            prisma.product.updateMany({
+                where: { id: { in: promoProductIds } },
+                data: { isPromo: true },
+            }),
+        ]);
 
-            if (promoProductIds.length > 0) {
-                await tx.product.updateMany({
-                    where: { id: { in: promoProductIds } },
-                    data: { isPromo: true },
-                });
-            }
-        });
+        await revalidateHomepageSettings();
 
-        return NextResponse.json({ message: 'Homepage settings updated.' });
+        return NextResponse.json({ message: 'Homepage settings updated' });
     } catch (error) {
         console.error('Failed to update homepage settings:', error);
         return NextResponse.json(

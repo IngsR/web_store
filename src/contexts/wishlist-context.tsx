@@ -22,6 +22,17 @@ export const WishlistContext = createContext<WishlistContextType | undefined>(
     undefined,
 );
 
+/**
+ * Custom hook to use the WishlistContext.
+ */
+export const useWishlist = () => {
+    const context = React.useContext(WishlistContext);
+    if (context === undefined) {
+        throw new Error('useWishlist must be used within a WishlistProvider');
+    }
+    return context;
+};
+
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
     const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
     const { toast } = useToast();
@@ -39,7 +50,6 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     useEffect(() => {
-        // This event is dispatched from the AuthContext on logout
         const handleClear = () => {
             setWishlistItems([]);
             localStorage.removeItem('wishlist');

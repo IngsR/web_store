@@ -2,9 +2,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import ProductCard from '@/components/product-card';
 import { ChevronRight } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import PromoProductCard from '@/components/promo-product-card';
-import { Skeleton } from '@/components/ui/skeleton';
 import HomeBannerCarousel from '@/components/home-banner-carousel';
 import {
     Carousel,
@@ -14,6 +12,8 @@ import {
     CarouselPrevious,
 } from '@/components/ui/carousel';
 import { getFeaturedProducts, getPromoProducts } from '@/lib/data/products';
+
+export const revalidate = 3600;
 
 async function getHomepageData() {
     const [featuredProducts, promoProducts] = await Promise.all([

@@ -95,6 +95,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     const removeFromCart = useCallback(
         async (productId: string) => {
+            const originalItems = [...cartItems];
+
+            // Optimistic UI update: remove item immediately
+            setCartItems((prevItems) =>
+                prevItems.filter((item) => item.id !== productId),
+            );
+
             try {
                 const res = await fetch('/api/cart', {
                     method: 'DELETE',
@@ -103,22 +110,35 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                     credentials: 'include',
                 });
 
-                if (res.ok) {
-                    await fetchCartItems(); // Refresh cart items
+                if (!res.ok) {
+                    // If API fails, revert the state
+                    setCartItems(originalItems);
+                    // TODO: Show a toast message for the error
                 }
             } catch (error) {
                 console.error('Failed to remove item from cart:', error);
+                // Revert state on network error
+                setCartItems(originalItems);
             }
         },
-        [fetchCartItems],
+        [cartItems],
     );
 
     const updateQuantity = useCallback(
         async (productId: string, quantity: number) => {
             if (quantity <= 0) {
-                await removeFromCart(productId);
+                removeFromCart(productId);
                 return;
             }
+
+            const originalItems = [...cartItems];
+
+            // Optimistic UI update: change quantity immediately
+            setCartItems((prevItems) =>
+                prevItems.map((item) =>
+                    item.id === productId ? { ...item, quantity } : item,
+                ),
+            );
 
             try {
                 const res = await fetch('/api/cart', {
@@ -128,14 +148,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                     credentials: 'include',
                 });
 
-                if (res.ok) {
-                    await fetchCartItems(); // Refresh cart items
+                if (!res.ok) {
+                    // If API fails, revert the state
+                    setCartItems(originalItems);
+                    // TODO: Show a toast message for the error
                 }
             } catch (error) {
                 console.error('Failed to update cart item quantity:', error);
+                // Revert state on network error
+                setCartItems(originalItems);
             }
         },
-        [fetchCartItems, removeFromCart],
+        [cartItems, removeFromCart],
     );
 
     const clearCart = useCallback(() => {
@@ -149,10 +173,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     const cartTotal = useMemo(
         () =>
-            cartItems.reduce(
-                (total, item) => total + item.price * item.quantity,
-                0,
-            ),
+            cartItems.reduce((total, item) => {
+                // ✅ Use discount price if available for total calculation
+                const price =
+                    item.discountPrice && item.discountPrice > 0
+                        ? item.discountPrice
+                        : item.price;
+                return total + price * item.quantity;
+            }, 0),
         [cartItems],
     );
 

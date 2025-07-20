@@ -17,10 +17,12 @@ import {
 } from '@/components/ui/carousel';
 import { ErrorBoundary } from 'react-error-boundary';
 import AddToCartButton from './add-to-cart-button';
+import WishlistButton from './wishlist-button';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import 'server-only';
 
-// ✅ Required by Next.js for static generation
+export const revalidate = 3600;
+
 export async function generateStaticParams() {
     const products = await getAllProductIds();
     return products.map((product) => ({
@@ -28,13 +30,11 @@ export async function generateStaticParams() {
     }));
 }
 
-// ✅ Gunakan interface yang kompatibel dengan Next.js
 interface PageProps {
     params: { id: string };
     searchParams: { [key: string]: string | string[] | undefined };
 }
 
-// ✅ Tambahkan generateMetadata untuk SEO dan type-hinting yang lebih baik
 export async function generateMetadata({
     params,
 }: PageProps): Promise<Metadata> {
@@ -52,7 +52,6 @@ export async function generateMetadata({
     };
 }
 
-// ✅ Jadikan komponen halaman sebagai fungsi async tunggal untuk menyederhanakan struktur
 export default async function ProductDetailPage({ params }: PageProps) {
     const product = await getProductById(params.id);
     if (!product) {
@@ -164,7 +163,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
                                 </p>
                             )}
 
-                            <AddToCartButton product={product} />
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <AddToCartButton product={product} />
+                                <WishlistButton product={product} />
+                            </div>
                         </div>
                     </div>
 

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from './auth.server';
-import type { SessionPayload } from './auth.types';
 
 export async function checkAdminAccess() {
     const session = await getServerSession();
