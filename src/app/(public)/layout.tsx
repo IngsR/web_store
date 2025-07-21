@@ -22,7 +22,9 @@ export default function PublicLayout({
     return (
         <>
             <Header />
-            <main className="flex-grow">{children}</main>
+            <main className="flex-grow">
+                <Suspense fallback={<PageLoader />}>{children}</Suspense>
+            </main>
             <Footer />
         </>
     );
