@@ -1,7 +1,7 @@
 'use client';
 
 import { Heart } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 import { useAuth } from '@/hooks/use-auth';
 import { useWishlist } from '@/hooks/use-wishlist';
@@ -21,13 +21,12 @@ export default function WishlistButton({
 }: WishlistButtonProps) {
     const { isAuthenticated } = useAuth();
     const { isWishlisted, addToWishlist, removeFromWishlist } = useWishlist();
-    const router = useRouter();
     const { toast } = useToast();
 
     const isInWishlist = isWishlisted(product.id);
 
     const handleWishlistToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault(); // Mencegah navigasi saat tombol di dalam Link diklik
+        e.preventDefault();
         e.stopPropagation();
 
         if (!isAuthenticated) {
@@ -37,8 +36,8 @@ export default function WishlistButton({
                     'Anda harus login untuk menambahkan item ke wishlist.',
                 variant: 'destructive',
                 action: (
-                    <Button onClick={() => router.push('/login')} size="sm">
-                        Login
+                    <Button asChild variant="secondary" size="sm">
+                        <Link href="/login">Login</Link>
                     </Button>
                 ),
             });

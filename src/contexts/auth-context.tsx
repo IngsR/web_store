@@ -97,14 +97,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         [user, login, logout, isLoading],
     );
 
-    if (isLoading && !user) {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-muted/40">
-                <JumpingDotsLoader />
-            </div>
-        );
-    }
-
     return (
         <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     );
