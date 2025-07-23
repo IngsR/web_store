@@ -64,8 +64,8 @@ Ikuti langkah-langkah berikut untuk menjalankan proyek ini di lingkungan lokal A
 ### 2. Clone Repositori
 
 ```bash
-git clone https://github.com/IngsR/Ing_Store.git
-cd Ing_Store
+git clone https://github.com/IngsR/web_store.git
+cd web_store
 ```
 
 ### 3. Instalasi Dependensi
@@ -104,7 +104,13 @@ Jalankan perintah berikut untuk membuat tabel di database Anda sesuai dengan ske
 npx prisma migrate dev
 ```
 
-### 6. Jalankan Server Development
+### 6. Instalasi Dependensi
+
+```bash
+npm run build
+```
+
+### 7. Jalankan Server Development
 
 ```bash
 npm run dev
