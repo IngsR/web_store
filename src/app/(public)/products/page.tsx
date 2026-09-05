@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, useCallback, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import ProductCard from '@/components/product-card';
@@ -28,14 +28,17 @@ function ProductsContent() {
     });
 
     const [sortBy, setSortBy] = useState('popularity');
-    const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+    const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
+
+    // In-memory client cache & AbortController untuk respon instan tanpa delay
+    const clientCache = useRef<Map<string, Product[]>>(new Map());
+    const abortRef = useRef<AbortController | null>(null);
 
     const fetchProducts = useCallback(async () => {
-        setLoading(true);
         const params = new URLSearchParams();
 
-        if (searchQuery) {
-            params.append('q', searchQuery);
+        if (searchQuery.trim()) {
+            params.append('q', searchQuery.trim());
         }
         filters.categories.forEach((cat) => params.append('category', cat));
         filters.conditions.forEach((cond) => params.append('condition', cond));
@@ -51,24 +54,53 @@ function ProductsContent() {
         }
         params.append('sortBy', sortBy);
 
+        const cacheKey = params.toString();
+
+        // 1. Cek cache lokal client untuk respon instan (0ms)
+        if (clientCache.current.has(cacheKey)) {
+            setProducts(clientCache.current.get(cacheKey)!);
+            setLoading(false);
+            return;
+        }
+
+        // 2. Batalkan request sebelumnya yang masih berjalan agar tidak ada antrean lambat
+        if (abortRef.current) {
+            abortRef.current.abort();
+        }
+        const controller = new AbortController();
+        abortRef.current = controller;
+
+        setLoading(true);
+
         try {
-            const res = await fetch(`/api/products?${params.toString()}`);
+            const res = await fetch(`/api/products?${cacheKey}`, {
+                signal: controller.signal,
+            });
             if (res.ok) {
                 const data = await res.json();
+                clientCache.current.set(cacheKey, data);
                 setProducts(data);
             } else {
                 setProducts([]);
             }
-        } catch (error) {
-            console.error('An error occurred while fetching products:', error);
-            setProducts([]);
+        } catch (error: any) {
+            if (error.name !== 'AbortError') {
+                console.error('An error occurred while fetching products:', error);
+                setProducts([]);
+            }
         } finally {
-            setLoading(false);
+            if (!controller.signal.aborted) {
+                setLoading(false);
+            }
         }
     }, [filters, searchQuery, sortBy]);
 
     useEffect(() => {
-        fetchProducts();
+        const timer = setTimeout(() => {
+            fetchProducts();
+        }, 150); // Debounce ringan 150ms agar tidak spam request saat ubah filter
+
+        return () => clearTimeout(timer);
     }, [fetchProducts]);
 
     useEffect(() => {
@@ -86,9 +118,10 @@ function ProductsContent() {
         fetchCategories();
     }, []);
 
+    const paramQ = searchParams.get('q') || '';
     useEffect(() => {
-        setSearchQuery(searchParams.get('q') || '');
-    }, [searchParams]);
+        setSearchQuery((prev) => (prev !== paramQ ? paramQ : prev));
+    }, [paramQ]);
 
     const handleResetAll = () => {
         setFilters({

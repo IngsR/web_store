@@ -5,6 +5,7 @@ import { productUpdateApiSchema } from '@/lib/schemas/product';
 import { deleteImage, uploadImageFromBase64 } from '@/lib/blob-storage';
 import { transformProductForClient } from '@/lib/data/transform';
 import { revalidateProduct } from '@/lib/actions/revalidate';
+import { clearCacheByPrefix } from '@/lib/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -134,6 +135,7 @@ export async function PUT(
         });
 
         await revalidateProduct(params.id);
+        clearCacheByPrefix('products:');
 
         return NextResponse.json(transformProductForClient(updatedProduct));
     } catch (error) {
@@ -169,6 +171,7 @@ export async function DELETE(
         await prisma.product.delete({ where: { id: params.id } });
 
         await revalidateProduct(params.id);
+        clearCacheByPrefix('products:');
 
         return new NextResponse(null, { status: 204 });
     } catch (error) {

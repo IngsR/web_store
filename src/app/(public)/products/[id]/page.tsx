@@ -24,14 +24,8 @@ import { Calculator } from 'lucide-react';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import 'server-only';
 
-export const revalidate = 3600;
-
-export async function generateStaticParams() {
-    const products = await getAllProductIds();
-    return products.map((product) => ({
-        id: product.id,
-    }));
-}
+// Render dinamis on-demand, tidak memaksa generate SSG seluruh produk di build time
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
     params: { id: string };

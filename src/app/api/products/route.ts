@@ -7,13 +7,26 @@ import { uploadImageFromBase64 } from '@/lib/blob-storage';
 import { transformProductForClient } from '@/lib/data/transform';
 import { revalidateProduct } from '@/lib/actions/revalidate';
 
+import { getFromCache, setInCache, clearCacheByPrefix } from '@/lib/cache';
+
 export const dynamic = 'force-dynamic';
 
 /**
  * GET: Mengambil produk dengan filter, sorting, dan pencarian.
- * Endpoint ini bersifat publik.
+ * Endpoint ini bersifat publik dengan in-memory cache cepat.
  */
 export async function GET(request: Request) {
+    const cacheKey = `products:${request.url}`;
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+        return NextResponse.json(cached, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+                'X-Cache': 'HIT',
+            },
+        });
+    }
+
     const { searchParams } = new URL(request.url);
     const q = searchParams.get('q');
     const categories = searchParams.getAll('category');
@@ -103,7 +116,14 @@ export async function GET(request: Request) {
         });
 
         const clientSafeProducts = products.map(transformProductForClient);
-        return NextResponse.json(clientSafeProducts);
+        setInCache(cacheKey, clientSafeProducts, 30);
+
+        return NextResponse.json(clientSafeProducts, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+                'X-Cache': 'MISS',
+            },
+        });
     } catch (error) {
         console.error('Failed to fetch products:', error);
         return NextResponse.json(
@@ -153,6 +173,7 @@ export async function POST(request: Request) {
         });
 
         await revalidateProduct(newProduct.id);
+        clearCacheByPrefix('products:');
 
         const clientSafeProduct = transformProductForClient(newProduct);
         return NextResponse.json(clientSafeProduct, { status: 201 });
