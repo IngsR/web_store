@@ -1,32 +1,44 @@
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-import type { Product as PrismaProduct } from '@prisma/client';
-import type { Product } from './types';
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+import type { Product as PrismaProduct } from "@prisma/client";
+import type { Product } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs));
 }
 
 export function formatCurrency(amount: number) {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(amount);
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 export const formatNumber = (value: number | null | undefined): string => {
-    if (value === null || value === undefined) {
-        return '';
-    }
-    return new Intl.NumberFormat('id-ID').format(value);
+  if (value === null || value === undefined) {
+    return "";
+  }
+  return new Intl.NumberFormat("id-ID").format(value);
 };
 
 export const parseNumber = (value: string): number | null => {
-    const numericString = value.replace(/[^0-9]/g, '');
-    if (numericString === '') {
-        return null;
-    }
-    return parseInt(numericString, 10);
+  const numericString = value.replace(/[^0-9]/g, "");
+  if (numericString === "") {
+    return null;
+  }
+  return parseInt(numericString, 10);
 };
+
+export function formatWhatsAppNumber(phone?: string | null): string {
+  if (!phone) return "";
+  const clean = phone.replace(/[^0-9]/g, "");
+  if (clean.startsWith("0")) {
+    return `62${clean.slice(1)}`;
+  }
+  if (clean.startsWith("8")) {
+    return `62${clean}`;
+  }
+  return clean;
+}
