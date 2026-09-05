@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache';
 export async function revalidateProduct(productId: string) {
     revalidatePath(`/products/${productId}`);
     revalidatePath('/products');
+    revalidatePath('/');
     revalidatePath('/home');
     console.log(`Revalidated paths for product: ${productId}`);
 }
@@ -17,6 +18,7 @@ export async function revalidateProduct(productId: string) {
  * Revalidates paths related to homepage settings (promo/featured).
  */
 export async function revalidateHomepageSettings() {
+    revalidatePath('/');
     revalidatePath('/home');
     revalidatePath('/products');
     console.log('Revalidated homepage settings paths.');

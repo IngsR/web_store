@@ -7,10 +7,9 @@ import React, {
     useMemo,
     useEffect,
 } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import type { User } from '@/lib/types';
-import JumpingDotsLoader from '@/components/ui/jumping-dots-loader';
 
 interface AuthContextType {
     user: User | null;
@@ -25,24 +24,48 @@ export const AuthContext = createContext<AuthContextType | undefined>(
     undefined,
 );
 
+const AUTH_STORAGE_KEY = 'auth_user';
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+    // Initial state from localStorage for 0ms instant render
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
-    const pathname = usePathname();
 
+    // 1. Instant hydration from localStorage
+    useEffect(() => {
+        try {
+            const cachedUser = localStorage.getItem(AUTH_STORAGE_KEY);
+            if (cachedUser) {
+                const parsed = JSON.parse(cachedUser);
+                setUser(parsed);
+                setIsLoading(false);
+            }
+        } catch {
+            // Ignore parse errors
+        }
+    }, []);
+
+    // 2. Validate session in background without blocking UI
     const fetchUser = useCallback(async () => {
-        setIsLoading(true);
         try {
             const session = await getSession();
             if (session?.user) {
                 setUser(session.user);
+                try {
+                    localStorage.setItem(
+                        AUTH_STORAGE_KEY,
+                        JSON.stringify(session.user),
+                    );
+                } catch {}
             } else {
                 setUser(null);
+                try {
+                    localStorage.removeItem(AUTH_STORAGE_KEY);
+                } catch {}
             }
         } catch (error) {
             console.error('Failed to fetch user session', error);
-            setUser(null);
         } finally {
             setIsLoading(false);
         }
@@ -55,12 +78,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const login = useCallback(
         (loggedInUser: User, redirect: boolean = true) => {
             setUser(loggedInUser);
+            setIsLoading(false);
+            try {
+                localStorage.setItem(
+                    AUTH_STORAGE_KEY,
+                    JSON.stringify(loggedInUser),
+                );
+            } catch {}
+
             if (redirect) {
                 if (loggedInUser.role === 'admin') {
                     router.push('/dashboard');
                 } else {
-                    // Redirect to home or a previous page if stored
-                    router.push('/home');
+                    router.push('/');
                 }
             }
         },
@@ -69,16 +99,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const logout = useCallback(async () => {
         try {
-            await fetch('/api/auth/logout', { method: 'POST' });
+            setUser(null);
+            try {
+                localStorage.removeItem(AUTH_STORAGE_KEY);
+            } catch {}
 
-            // We don't need to clear localStorage anymore since data is in the database
-            // Just notify contexts to clear their local state
+            // Notify contexts to clear local state
             const clearCartEvent = new CustomEvent('clearCart');
             const clearWishlistEvent = new CustomEvent('clearWishlist');
             document.dispatchEvent(clearCartEvent);
             document.dispatchEvent(clearWishlistEvent);
 
-            setUser(null);
+            await fetch('/api/auth/logout', { method: 'POST' });
             router.push('/login');
         } catch (error) {
             console.error('Logout failed', error);
@@ -88,8 +120,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const value = useMemo(
         () => ({
             user,
-            isAuthenticated: !isLoading && !!user,
-            isAdmin: !isLoading && user?.role === 'admin',
+            isAuthenticated: !!user,
+            isAdmin: user?.role === 'admin',
             login,
             logout,
             isLoading,

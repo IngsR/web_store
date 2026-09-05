@@ -17,6 +17,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get('q');
     const categories = searchParams.getAll('category');
+    const conditions = searchParams.getAll('condition');
+    const fuelTypes = searchParams.getAll('fuelType');
+    const isPromo = searchParams.get('promo');
     const priceMin = Number(searchParams.get('priceMin')) || 0;
     const priceMax =
         Number(searchParams.get('priceMax')) || Number.MAX_SAFE_INTEGER;
@@ -39,6 +42,24 @@ export async function GET(request: Request) {
         if (categories.length > 0) {
             (where.AND as Prisma.ProductWhereInput[]).push({
                 category: { in: categories },
+            });
+        }
+
+        if (conditions.length > 0) {
+            (where.AND as Prisma.ProductWhereInput[]).push({
+                condition: { in: conditions as any },
+            });
+        }
+
+        if (fuelTypes.length > 0) {
+            (where.AND as Prisma.ProductWhereInput[]).push({
+                fuelType: { in: fuelTypes as any },
+            });
+        }
+
+        if (isPromo === 'true') {
+            (where.AND as Prisma.ProductWhereInput[]).push({
+                isPromo: true,
             });
         }
 

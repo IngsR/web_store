@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,10 @@ export default function SearchInput() {
   const searchParams = useSearchParams();
   const defaultQuery = searchParams.get('q') || '';
   const [query, setQuery] = useState(defaultQuery);
+
+  useEffect(() => {
+    setQuery(searchParams.get('q') || '');
+  }, [searchParams]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,16 +25,16 @@ export default function SearchInput() {
   };
 
   return (
-    <form onSubmit={handleSearch} className="w-full">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <form onSubmit={handleSearch} className="w-full relative">
+      <div className="relative flex items-center">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
         <Input
           type="search"
-          placeholder="Search products..."
+          placeholder="Cari produk..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full pl-9 h-10 bg-muted"
-          aria-label="Search products"
+          className="w-full pl-8 pr-3 h-8 sm:h-9 text-xs sm:text-sm rounded-full bg-muted/60 hover:bg-muted focus:bg-background border-border/80 transition-all placeholder:text-muted-foreground/80 focus-visible:ring-1 focus-visible:ring-primary"
+          aria-label="Cari produk"
         />
       </div>
     </form>

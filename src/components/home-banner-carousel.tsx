@@ -13,41 +13,39 @@ import {
     CarouselPrevious,
 } from '@/components/ui/carousel';
 import { Button } from './ui/button';
+import { Calculator, ArrowRight } from 'lucide-react';
 
-// Daftar gambar banner statis dari direktori /public
 const bannerImages = [
     {
         src: '/home/banner-company.jpg',
         alt: 'Banner promosi mobil terbaru',
         title: 'Temukan Mobil Impian Anda',
-        description: 'Koleksi terlengkap dengan penawaran terbaik.',
+        description: 'Koleksi mobil terlengkap dengan penawaran bunga rendah hingga tenor 5 tahun.',
         link: '/products',
     },
     {
         src: '/home/banner-company1.jpg',
         alt: 'Penawaran spesial untuk model SUV',
         title: 'Promo Spesial SUV Tangguh',
-        description:
-            'Siap menjelajah di segala medan. Dapatkan diskon khusus bulan ini.',
+        description: 'Jelajahi berbagai medan dengan kenyamanan maksimal dan cicilan ringan.',
         link: '/products?category=SUV',
     },
     {
         src: '/home/banner-company2.jpg',
         alt: 'Mobil keluarga yang nyaman dan aman',
-        title: 'Kenyamanan Untuk Keluarga',
-        description: 'Pilihan mobil keluarga yang luas, aman, dan efisien.',
+        title: 'Kenyamanan Keluarga Tercinta',
+        description: 'Pilihan mobil keluarga yang lapang, aman, dan hemat bahan bakar.',
         link: '/products?category=MPV',
     },
 ];
 
 export default function HomeBannerCarousel() {
-    // Inisialisasi plugin autoplay
     const plugin = React.useRef(
         Autoplay({ delay: 5000, stopOnInteraction: true }),
     );
 
     return (
-        <section className="relative w-full">
+        <section className="relative w-full overflow-hidden bg-neutral-950">
             <Carousel
                 plugins={[plugin.current]}
                 className="w-full"
@@ -60,41 +58,55 @@ export default function HomeBannerCarousel() {
                 <CarouselContent>
                     {bannerImages.map((banner, index) => (
                         <CarouselItem key={index}>
-                            <div className="relative h-[40vh] w-full md:h-[60vh]">
+                            <div className="relative h-[280px] sm:h-[360px] md:h-[480px] lg:h-[540px] w-full">
                                 <Image
                                     src={banner.src}
                                     alt={banner.alt}
                                     fill
-                                    className="object-cover"
-                                    priority={index === 0} // Prioritaskan gambar pertama untuk LCP
+                                    className="object-cover object-center"
+                                    priority={index === 0}
                                     sizes="100vw"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
                                 <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center text-white">
-                                    <div className="container mx-auto px-4">
-                                        <h1 className="font-headline text-4xl font-bold drop-shadow-lg md:text-6xl">
+                                    <div className="container mx-auto px-2 sm:px-4 max-w-3xl">
+                                        <h1 className="font-headline text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight drop-shadow-md">
                                             {banner.title}
                                         </h1>
-                                        <p className="mx-auto mt-4 max-w-2xl text-lg drop-shadow-md md:text-xl">
+                                        <p className="mx-auto mt-2 sm:mt-3 max-w-xl text-xs sm:text-sm md:text-lg text-gray-200 drop-shadow line-clamp-2 sm:line-clamp-none">
                                             {banner.description}
                                         </p>
-                                        <Button
-                                            asChild
-                                            className="mt-8 font-bold"
-                                            size="lg"
-                                        >
-                                            <Link href={banner.link}>
-                                                Lihat Penawaran
-                                            </Link>
-                                        </Button>
+                                        <div className="mt-4 sm:mt-6 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                                            <Button
+                                                asChild
+                                                size="sm"
+                                                className="font-bold sm:h-11 sm:px-6 text-xs sm:text-sm shadow-lg"
+                                            >
+                                                <Link href={banner.link} className="flex items-center gap-1.5">
+                                                    Lihat Penawaran
+                                                    <ArrowRight className="h-3.5 w-3.5" />
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                size="sm"
+                                                className="bg-white/15 hover:bg-white/25 text-white border-white/30 backdrop-blur-sm font-semibold sm:h-11 sm:px-5 text-xs sm:text-sm"
+                                            >
+                                                <Link href="/simulasi-kredit" className="flex items-center gap-1.5">
+                                                    <Calculator className="h-3.5 w-3.5" />
+                                                    Simulasi Kredit
+                                                </Link>
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </CarouselItem>
                     ))}
                 </CarouselContent>
-                <CarouselPrevious className="absolute left-4 top-1/2 z-10 hidden -translate-y-1/2 md:flex" />
-                <CarouselNext className="absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 md:flex" />
+                <CarouselPrevious className="absolute left-3 top-1/2 z-10 hidden -translate-y-1/2 md:flex bg-black/40 text-white border-white/20 hover:bg-black/70 hover:text-white" />
+                <CarouselNext className="absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 md:flex bg-black/40 text-white border-white/20 hover:bg-black/70 hover:text-white" />
             </Carousel>
         </section>
     );

@@ -2,8 +2,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import type { Product } from '@/lib/types';
-import { formatCurrency, formatNumber } from '@/lib/utils';
-import { ArrowRight } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
+import { ChevronRight } from 'lucide-react';
 
 interface PromoProductCardProps {
     product: Product;
@@ -11,71 +11,86 @@ interface PromoProductCardProps {
 
 export default function PromoProductCard({ product }: PromoProductCardProps) {
     const getValidImage = (img?: string) => {
-        if (img && (img.startsWith('data:image') || img.startsWith('http'))) {
+        if (img && (img.startsWith('data:image') || img.startsWith('http') || img.startsWith('/'))) {
             return img;
         }
         return '/home/placeholder.jpg';
     };
 
+    const hasDiscount = product.discountPrice && product.discountPrice > 0;
+    const discountAmount = hasDiscount ? product.price - (product.discountPrice ?? 0) : 0;
+    const discountPercent = hasDiscount ? Math.round((discountAmount / product.price) * 100) : 0;
+
     return (
-        <div className="group relative h-full overflow-hidden rounded-2xl shadow-lg transition-all duration-500 hover:scale-105 hover:shadow-2xl">
-            <Link href={`/products/${product.id}`} className="block h-full">
-                <div className="absolute inset-0 z-0">
+        <div className="group h-full w-full rounded-xl border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow hover:border-primary/40 flex flex-col overflow-hidden">
+            <Link
+                href={`/products/${product.id}`}
+                prefetch={true}
+                className="flex flex-col h-full focus:outline-none"
+            >
+                {/* 1. Image Container - Compact, clean object-contain */}
+                <div className="relative aspect-[4/3] w-full bg-secondary/30 p-2 overflow-hidden flex items-center justify-center">
                     <Image
                         src={getValidImage(product.images?.[0])}
                         alt={product.name}
                         fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                        sizes="(max-width: 768px) 50vw, 33vw"
+                        className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 640px) 48vw, (max-width: 1024px) 25vw, 20vw"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                </div>
-                <div className="relative z-10 flex h-full flex-col justify-end p-6 text-white">
-                    <h3 className="font-headline text-xl font-bold line-clamp-2">
-                        {product.name}
-                    </h3>
-                    <div className="mt-2 flex items-center gap-2 text-xs">
-                        <Badge
-                            variant={
-                                product.condition === 'Baru'
-                                    ? 'default'
-                                    : 'secondary'
-                            }
-                            className="border-none bg-white/20 text-white backdrop-blur-sm"
-                        >
-                            {product.condition}
-                        </Badge>
-                        {product.fuelType && (
-                            <Badge className="border-none bg-white/20 text-white backdrop-blur-sm">
-                                {product.fuelType}
-                            </Badge>
-                        )}
-                        {product.condition === 'Bekas' &&
-                            product.mileage != null && (
-                                <span className="font-medium">
-                                    {formatNumber(product.mileage)} KM
-                                </span>
-                            )}
-                    </div>
-                    <div className="mt-4">
-                        {product.discountPrice && product.discountPrice > 0 ? (
-                            <div className="flex flex-col">
-                                <span className="text-sm text-gray-300 line-through">
-                                    {formatCurrency(product.price)}
-                                </span>
-                                <span className="text-2xl font-bold text-amber-400">
-                                    {formatCurrency(product.discountPrice)}
-                                </span>
-                            </div>
-                        ) : (
-                            <span className="text-2xl font-bold">
-                                {formatCurrency(product.price)}
+
+                    {/* Standard Promo Badge */}
+                    <div className="absolute top-1.5 left-1.5 z-10 flex flex-col gap-0.5 items-start">
+                        <span className="inline-flex items-center rounded bg-destructive px-1.5 py-0.5 text-[9px] font-bold text-destructive-foreground shadow-sm">
+                            PROMO
+                        </span>
+                        {discountPercent > 0 && (
+                            <span className="inline-flex items-center rounded bg-amber-500 px-1 py-0.2 text-[8px] font-extrabold text-black shadow-sm">
+                                -{discountPercent}%
                             </span>
                         )}
                     </div>
-                    <div className="mt-6 flex items-center font-semibold text-amber-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                        Lihat Detail
-                        <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </div>
+
+                {/* 2. Content Container - Compact */}
+                <div className="p-2 sm:p-2.5 flex flex-col flex-grow justify-between bg-card text-foreground">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-1">
+                            <Badge
+                                variant={product.condition === 'Baru' ? 'default' : 'secondary'}
+                                className="text-[9px] px-1 py-0 h-4 font-normal"
+                            >
+                                {product.condition}
+                            </Badge>
+                            {product.category && (
+                                <Badge
+                                    variant="outline"
+                                    className="text-[9px] px-1 py-0 h-4 font-normal border-border hidden sm:inline-flex"
+                                >
+                                    {product.category}
+                                </Badge>
+                            )}
+                        </div>
+
+                        <h3 className="font-semibold text-[11px] sm:text-xs line-clamp-2 leading-tight tracking-tight text-foreground group-hover:text-primary transition-colors min-h-[1.75rem]">
+                            {product.name}
+                        </h3>
+                    </div>
+
+                    <div className="mt-2 pt-1.5 border-t border-border/60">
+                        {hasDiscount ? (
+                            <div className="space-y-0.5">
+                                <span className="text-[9px] text-muted-foreground line-through block">
+                                    {formatCurrency(product.price)}
+                                </span>
+                                <p className="font-extrabold text-xs sm:text-sm text-destructive leading-tight">
+                                    {formatCurrency(product.discountPrice!)}
+                                </p>
+                            </div>
+                        ) : (
+                            <p className="font-extrabold text-xs sm:text-sm text-primary leading-tight">
+                                {formatCurrency(product.price)}
+                            </p>
+                        )}
                     </div>
                 </div>
             </Link>

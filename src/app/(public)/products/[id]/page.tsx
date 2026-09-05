@@ -18,6 +18,9 @@ import {
 import { ErrorBoundary } from 'react-error-boundary';
 import AddToCartButton from './add-to-cart-button';
 import WishlistButton from './wishlist-button';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Calculator } from 'lucide-react';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import 'server-only';
 
@@ -163,9 +166,29 @@ export default async function ProductDetailPage({ params }: PageProps) {
                                 </p>
                             )}
 
-                            <div className="flex flex-col md:flex-row gap-4">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <AddToCartButton product={product} />
                                 <WishlistButton product={product} />
+                            </div>
+
+                            {/* Simulasi Kredit Quick Banner */}
+                            <div className="mt-5 p-3.5 sm:p-4 rounded-xl border border-primary/20 bg-primary/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                <div className="space-y-0.5">
+                                    <p className="text-xs font-bold text-primary flex items-center gap-1.5">
+                                        <Calculator className="h-4 w-4" />
+                                        Simulasi Cicilan Kredit
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        DP mulai 20% & tenor fleksibel hingga 5 tahun (60 bulan)
+                                    </p>
+                                </div>
+                                <Button asChild size="sm" variant="default" className="text-xs font-bold w-full sm:w-auto shrink-0">
+                                    <Link
+                                        href={`/simulasi-kredit?price=${product.discountPrice && product.discountPrice > 0 ? product.discountPrice : product.price}&name=${encodeURIComponent(product.name)}`}
+                                    >
+                                        Hitung Cicilan
+                                    </Link>
+                                </Button>
                             </div>
                         </div>
                     </div>

@@ -1,17 +1,6 @@
-import { Suspense } from 'react';
-import JumpingDotsLoader from '@/components/ui/jumping-dots-loader';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
-
-export const dynamic = 'force-dynamic';
-
-function PageLoader() {
-    return (
-        <div className="flex min-h-[calc(100vh-200px)] items-center justify-center">
-            <JumpingDotsLoader />
-        </div>
-    );
-}
+import BottomNav from '@/components/layout/bottom-nav';
 
 export default function PublicLayout({
     children,
@@ -19,12 +8,13 @@ export default function PublicLayout({
     children: React.ReactNode;
 }) {
     return (
-        <>
+        <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/20">
             <Header />
-            <main className="flex-grow">
-                <Suspense fallback={<PageLoader />}>{children}</Suspense>
+            <main className="flex-grow pb-20 md:pb-0">
+                {children}
             </main>
             <Footer />
-        </>
+            <BottomNav />
+        </div>
     );
 }
