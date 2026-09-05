@@ -89,3 +89,39 @@ model Banner {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Sales {
+  id                 String    @id @default(uuid())
+  employeeId         String    @unique // NIK / Nomor Induk Karyawan ERP
+  name               String
+  phone              String
+  email              String    @unique
+  title              String    @default("Automotive Sales Consultant")
+  status             String    @default("ACTIVE") // "ACTIVE" | "INACTIVE"
+  assignedLeadsCount Int       @default(0)
+  lastAssignedAt     DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  orders             Order[]
+}
+
+model Order {
+  id                 String    @id // Format SPK e.g. "SPK-20260905-XXXX"
+  customerName       String
+  customerNik        String?
+  customerPhone      String
+  customerEmail      String
+  customerCity       String
+  customerAddress    String
+  paymentMethod      String    @default("CASH") // "CASH" | "KREDIT"
+  notes              String?
+  items              Json      // Rincian unit mobil yang dipesan
+  totalAmount        Float
+  status             String    @default("BARU") // BARU, DIHUBUNGI, DEAL, SELESAI, BATAL
+  assignedSalesId    String?
+  assignedSales      Sales?    @relation(fields: [assignedSalesId], references: [id], onDelete: SetNull)
+  forwardedToSalesAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
