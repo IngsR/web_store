@@ -1,0 +1,50 @@
+[
+  {
+    "id": "SPK-202609-001",
+    "customerName": "Budi Santoso",
+    "customerPhone": "081234567891",
+    "customerEmail": "budi.santoso@gmail.com",
+    "customerCity": "Jakarta Selatan",
+    "customerAddress": "Jl. Fatmawati No. 45, Cilandak, Jakarta Selatan",
+    "paymentMethod": "KREDIT",
+    "notes": "Minat DP 30% tenor 4 tahun. Mohon info simulasi leasing BCA Finance.",
+    "items": [
+      {
+        "id": "sample-1",
+        "name": "Toyota Fortuner 2.8 GR Sport",
+        "price": 625000000,
+        "quantity": 1,
+        "category": "SUV",
+        "condition": "Baru"
+      }
+    ],
+    "totalAmount": 625000000,
+    "status": "BARU",
+    "createdAt": "2026-09-05T08:30:00.000Z",
+    "updatedAt": "2026-09-05T08:30:00.000Z"
+  },
+  {
+    "id": "SPK-202609-002",
+    "customerName": "Siti Nurhaliza",
+    "customerPhone": "081987654321",
+    "customerEmail": "siti.nurhaliza@yahoo.com",
+    "customerCity": "Bandung",
+    "customerAddress": "Komplek Dago Asri Blok B3 No. 12, Bandung",
+    "paymentMethod": "CASH",
+    "notes": "Pembelian cash keras. Mau jadwal serah terima minggu depan.",
+    "items": [
+      {
+        "id": "sample-2",
+        "name": "Honda HR-V 1.5 SE CVT",
+        "price": 415000000,
+        "quantity": 1,
+        "category": "SUV",
+        "condition": "Baru"
+      }
+    ],
+    "totalAmount": 415000000,
+    "status": "DIHUBUNGI",
+    "createdAt": "2026-09-04T14:15:00.000Z",
+    "updatedAt": "2026-09-04T15:00:00.000Z"
+  }
+]

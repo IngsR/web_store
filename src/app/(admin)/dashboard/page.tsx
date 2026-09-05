@@ -35,15 +35,20 @@ export default function DashboardPage() {
     useEffect(() => {
         const fetchDashboardStats = async () => {
             try {
-                const productsRes = await fetch('/api/products');
-                const products = productsRes.ok ? await productsRes.json() : [];
+                const [productsRes, ordersRes] = await Promise.all([
+                    fetch('/api/products').catch(() => null),
+                    fetch('/api/orders').catch(() => null),
+                ]);
+
+                const products = productsRes && productsRes.ok ? await productsRes.json() : [];
+                const orders = ordersRes && ordersRes.ok ? await ordersRes.json() : [];
 
                 setStats({
-                    productCount: products.length,
-                    userCount: 150,
-                    orderCount: 75,
-                    cartItemsCount: 45,
-                    wishlistCount: 30,
+                    productCount: Array.isArray(products) ? products.length : 0,
+                    userCount: 24,
+                    orderCount: Array.isArray(orders) ? orders.length : 0,
+                    cartItemsCount: 8,
+                    wishlistCount: 15,
                 });
             } catch (error) {
                 console.error('Failed to fetch dashboard stats', error);

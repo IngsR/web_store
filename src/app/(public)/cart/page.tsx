@@ -198,31 +198,18 @@ export default function CartPage() {
 
                                 <div className="space-y-2 pt-3">
                                     <Button asChild size="lg" className="w-full font-bold h-11 text-xs sm:text-sm shadow-md">
-                                        <a
-                                            href={`https://wa.me/6281234567890?text=${encodeURIComponent(
-                                                `Halo Sales Ing Store, saya ingin memesan unit dari keranjang:\n\n${cartItems
-                                                    .map(
-                                                        (item) =>
-                                                            `- ${item.name} (${item.quantity}x) = ${formatCurrency(
-                                                                getItemPrice(item) * item.quantity,
-                                                            )}`,
-                                                    )
-                                                    .join('\n')}\n\n*Total:* ${formatCurrency(
-                                                    cartTotal,
-                                                )}\n\nMohon info ketersediaan stok dan prosedur booking. Terima kasih!`,
-                                            )}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            Proses Booking via WhatsApp
-                                        </a>
+                                        <Link href="/checkout">
+                                            Lanjut ke Formulir Pemesanan (SPK)
+                                        </Link>
                                     </Button>
-
                                     <Button asChild variant="outline" className="w-full text-xs h-10">
                                         <Link href="/simulasi-kredit">
                                             Simulasi Kredit untuk Unit Ini
                                         </Link>
                                     </Button>
+                                    <p className="text-[11px] text-center text-muted-foreground">
+                                        Data pemesanan akan dicatat resmi sebagai SPK sebelum konfirmasi sales via WhatsApp.
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>
