@@ -1,17 +1,14 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
-    Home,
-    Menu,
-    Package,
     Search,
-    Settings,
     Shield,
-    User,
-    CircleDollarSign,
+    Store,
+    ExternalLink,
+    LogOut,
+    User as UserIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,22 +20,13 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/use-auth';
-import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
-const mainNavLinks = [
-    { href: '/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/dashboard/products', label: 'Products', icon: Package },
-    { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-];
+import ThemeToggle from '@/components/layout/theme-toggle';
 
 export default function AdminHeader() {
     const { user, logout } = useAuth();
-    const pathname = usePathname();
     const router = useRouter();
-    const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const getInitials = (name: string) => {
         return (
@@ -46,7 +34,7 @@ export default function AdminHeader() {
                 ?.split(' ')
                 .map((n) => n[0])
                 .join('')
-                .toUpperCase() || ''
+                .toUpperCase() || 'AD'
         );
     };
 
@@ -64,134 +52,88 @@ export default function AdminHeader() {
     };
 
     return (
-        <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
-            <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+        <header className="sticky top-0 z-40 flex h-14 sm:h-16 items-center justify-between gap-3 border-b border-border bg-card/95 backdrop-blur px-3 sm:px-6 shadow-xs">
+            {/* Mobile Branding (Desktop is in Sidebar) */}
+            <div className="flex items-center gap-2 md:hidden">
                 <Link
                     href="/dashboard"
-                    className="flex items-center gap-2 text-lg font-semibold md:text-base"
+                    className="flex items-center gap-2 font-bold text-sm tracking-tight text-foreground"
                 >
-                    <CircleDollarSign className="h-6 w-6 text-primary" />
-                    <span className="sr-only">Ing Store Admin</span>
+                    <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold">
+                        <Store className="h-4 w-4" />
+                    </div>
+                    <span>Ing Store Admin</span>
                 </Link>
-                {mainNavLinks.map(({ href, label }) => (
-                    <Link
-                        key={href}
-                        href={href}
-                        className={cn(
-                            'group relative py-2 transition-colors hover:text-foreground',
-                            pathname === href ||
-                                (href !== '/dashboard' &&
-                                    pathname.startsWith(href))
-                                ? 'text-foreground'
-                                : 'text-muted-foreground',
-                        )}
-                    >
-                        {label}
-                        <span
-                            className={cn(
-                                'absolute bottom-0 left-0 block h-0.5 w-full origin-center transform bg-primary transition-transform duration-300',
-                                pathname === href ||
-                                    (href !== '/dashboard' &&
-                                        pathname.startsWith(href))
-                                    ? 'scale-x-100'
-                                    : 'scale-x-0 group-hover:scale-x-100',
-                            )}
-                        />
-                    </Link>
-                ))}
-            </nav>
+            </div>
 
-            <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                <SheetTrigger asChild>
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="shrink-0 md:hidden"
-                    >
-                        <Menu className="h-5 w-5" />
-                        <span className="sr-only">Toggle navigation menu</span>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="top" className="pt-12">
-                    <nav className="flex flex-col items-center gap-6 text-lg font-medium">
-                        <Link
-                            href="/dashboard"
-                            className="flex items-center gap-2 font-headline text-xl font-bold text-primary"
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            <CircleDollarSign className="h-6 w-6" />
-                            <span>Ing Store</span>
-                        </Link>
-                        {mainNavLinks.map(({ href, label }) => (
-                            <Link
-                                key={href}
-                                href={href}
-                                className={cn(
-                                    'transition-colors hover:text-foreground',
-                                    pathname === href ||
-                                        (href !== '/dashboard' &&
-                                            pathname.startsWith(href))
-                                        ? 'text-foreground'
-                                        : 'text-muted-foreground',
-                                )}
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                {label}
-                            </Link>
-                        ))}
-                    </nav>
-                </SheetContent>
-            </Sheet>
-
-            <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-                <form
-                    className="ml-auto flex-1 sm:flex-initial"
-                    onSubmit={handleSearch}
-                >
+            {/* Search Input (Desktop & Tablet) */}
+            <div className="hidden sm:flex flex-1 max-w-md">
+                <form className="w-full" onSubmit={handleSearch}>
                     <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                         <Input
                             type="search"
                             name="search"
-                            placeholder="Search admin products..."
-                            className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                            placeholder="Cari unit mobil di katalog..."
+                            className="pl-8 h-9 text-xs rounded-lg w-full bg-muted/30 focus:bg-background"
                         />
                     </div>
                 </form>
+            </div>
+
+            {/* Right Tools: Theme & Profile */}
+            <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+                <ThemeToggle />
+
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button
-                            variant="secondary"
-                            size="icon"
-                            className="rounded-full"
+                            variant="ghost"
+                            size="sm"
+                            className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-full p-0 ring-offset-background hover:opacity-80"
                         >
-                            <Avatar className="h-8 w-8">
+                            <Avatar className="h-8 w-8 sm:h-9 sm:w-9 border border-border">
                                 <AvatarImage
                                     src={user?.profilePicture || ''}
-                                    alt={user?.name}
+                                    alt={user?.name || 'Admin'}
                                 />
-                                <AvatarFallback>
-                                    {getInitials(user?.name || '')}
+                                <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
+                                    {getInitials(user?.name || 'Admin')}
                                 </AvatarFallback>
                             </Avatar>
-                            <span className="sr-only">Toggle user menu</span>
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuContent align="end" className="w-56 text-xs">
+                        <DropdownMenuLabel className="font-normal p-2.5">
+                            <div className="flex flex-col space-y-1">
+                                <p className="text-xs font-bold leading-none text-foreground truncate">
+                                    {user?.name || 'Administrator'}
+                                </p>
+                                <p className="text-[11px] leading-none text-muted-foreground truncate">
+                                    {user?.email}
+                                </p>
+                            </div>
+                        </DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                            <Link href="/account">Profile Settings</Link>
+                            <Link href="/account" className="cursor-pointer">
+                                <UserIcon className="mr-2 h-3.5 w-3.5" />
+                                Pengaturan Akun
+                            </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                            <Link href="/">
-                                <Shield className="mr-2 h-4 w-4" />
-                                Home
+                            <Link href="/" target="_blank" className="cursor-pointer">
+                                <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                                Buka Web Pembeli
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={logout}>
-                            Logout
+                        <DropdownMenuItem
+                            onClick={logout}
+                            className="text-destructive focus:text-destructive cursor-pointer"
+                        >
+                            <LogOut className="mr-2 h-3.5 w-3.5" />
+                            Keluar (Logout)
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

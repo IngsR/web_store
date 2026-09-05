@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
-import { updateOrderStatus, deleteOrder, getOrderById } from '@/lib/data/orders';
-import type { OrderStatus } from '@/lib/types';
+import {
+    updateOrderStatus,
+    deleteOrder,
+    getOrderById,
+    markOrderForwardedToSales,
+    assignNextSalesToOrder,
+} from '@/lib/repositories/order-repository';
+import { getServerSession } from '@/lib/auth/auth-server';
+import type { OrderStatus } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,14 +18,61 @@ interface RouteParams {
 }
 
 /**
- * PATCH: Memperbarui status pesanan (BARU, DIHUBUNGI, DEAL, SELESAI, BATAL).
+ * GET: Mengambil detail satu pesanan berdasarkan ID (admin only).
+ */
+export async function GET(_request: Request, { params }: RouteParams) {
+    const session = await getServerSession();
+    if (!session?.user) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+    if (session.user.role !== 'admin') {
+        return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
+
+    try {
+        const { id } = params;
+        const order = await getOrderById(id);
+        if (!order) {
+            return NextResponse.json({ message: 'Pesanan tidak ditemukan' }, { status: 404 });
+        }
+        return NextResponse.json(order);
+    } catch (error) {
+        console.error('Error saat mengambil detail pesanan:', error);
+        return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+/**
+ * PATCH: Memperbarui status pesanan, mencatat pengiriman ke sales, atau menggilir sales.
  */
 export async function PATCH(request: Request, { params }: RouteParams) {
     try {
         const { id } = params;
         const body = await request.json();
-        const { status } = body as { status: OrderStatus };
 
+        // Aksi 1: Tandai sudah diforward ke WhatsApp sales
+        if (body.action === 'markForwarded') {
+            const updated = await markOrderForwardedToSales(id);
+            if (!updated) {
+                return NextResponse.json({ message: 'Pesanan tidak ditemukan' }, { status: 404 });
+            }
+            return NextResponse.json(updated);
+        }
+
+        // Aksi 2: Tugaskan sales giliran berikutnya via Round Robin
+        if (body.action === 'assignNextSales') {
+            const updated = await assignNextSalesToOrder(id);
+            if (!updated) {
+                return NextResponse.json(
+                    { message: 'Gagal menugaskan sales atau tidak ada sales aktif' },
+                    { status: 400 },
+                );
+            }
+            return NextResponse.json(updated);
+        }
+
+        // Aksi 3: Update status pesanan
+        const { status } = body as { status?: OrderStatus };
         const validStatuses: OrderStatus[] = [
             'BARU',
             'DIHUBUNGI',

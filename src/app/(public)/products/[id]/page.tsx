@@ -5,9 +5,9 @@ import {
     getAllProductIds,
     getProductById,
     getRelatedProducts,
-} from '@/lib/data/products';
+} from '@/lib/repositories/product-repository';
 import { Badge } from '@/components/ui/badge';
-import ProductCard from '@/components/product-card';
+import ProductCard from '@/components/product/product-card';
 import {
     Carousel,
     CarouselContent,
@@ -16,8 +16,8 @@ import {
     CarouselPrevious,
 } from '@/components/ui/carousel';
 import { ErrorBoundary } from 'react-error-boundary';
-import AddToCartButton from './add-to-cart-button';
-import WishlistButton from './wishlist-button';
+import AddToCartButton from './_components/add-to-cart-button';
+import WishlistButton from './_components/wishlist-button';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Calculator } from 'lucide-react';

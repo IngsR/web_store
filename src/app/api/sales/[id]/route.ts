@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { updateSales, deleteSales, getSalesById } from "@/lib/data/sales";
+import { updateSales, deleteSales, getSalesById } from "@/lib/repositories/sales-repository";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";

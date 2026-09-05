@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import ProductCard from '@/components/product-card';
+import ProductCard from '@/components/product/product-card';
 import { ChevronRight, Calculator, Sparkles, ShieldCheck, Clock, Percent } from 'lucide-react';
-import HomeBannerCarousel from '@/components/home-banner-carousel';
-import { getFeaturedProducts, getPromoProducts } from '@/lib/data/products';
-import PromoCarousel from './home/promo-carousel';
+import HomeBannerCarousel from './_components/home-banner-carousel';
+import { getFeaturedProducts, getPromoProducts } from '@/lib/repositories/product-repository';
+import PromoCarousel from './_components/promo-carousel';
 
 export const revalidate = 300; // Static ISR caching every 5 minutes
 

@@ -3,6 +3,8 @@
 import { useAuth } from '@/hooks/use-auth';
 import type { ReactNode } from 'react';
 import AdminHeader from './_components/header';
+import AdminSidebar from './_components/sidebar';
+import AdminBottomNav from './_components/admin-bottom-nav';
 import JumpingDotsLoader from '@/components/ui/jumping-dots-loader';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -17,11 +19,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div className="flex min-h-screen w-full flex-col">
-            <AdminHeader />
-            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
-                {children}
-            </main>
+        <div className="flex min-h-screen w-full bg-background text-foreground">
+            {/* Desktop Sidebar */}
+            <AdminSidebar />
+
+            {/* Main Area */}
+            <div className="flex flex-1 flex-col min-w-0">
+                <AdminHeader />
+                <main className="flex-1 pb-20 md:pb-8 bg-background">
+                    {children}
+                </main>
+            </div>
+
+            {/* Mobile Bottom Navigation Bar */}
+            <AdminBottomNav />
         </div>
     );
 }

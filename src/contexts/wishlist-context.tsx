@@ -7,7 +7,7 @@ import React, {
     useMemo,
     useEffect,
 } from 'react';
-import type { Product } from '@/lib/types';
+import type { Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
 export interface WishlistContextType {

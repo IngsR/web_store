@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getServerSession } from '@/lib/auth.server';
+import { getServerSession } from '@/lib/auth/auth-server';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -13,10 +13,10 @@ async function getUserId() {
 /**
  * GET: Mengambil semua item di keranjang pengguna.
  */
-export async function GET() {
+export async function GET(request: Request) {
     const userId = await getUserId();
     if (!userId) {
-        return NextResponse.json([]);
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     try {
@@ -139,6 +139,7 @@ export async function PUT(request: Request) {
 
 /**
  * DELETE: Menghapus item dari keranjang.
+ * Mendukung itemId via query param (?itemId=...) maupun request body.
  */
 export async function DELETE(request: Request) {
     const userId = await getUserId();
@@ -147,7 +148,22 @@ export async function DELETE(request: Request) {
     }
 
     try {
-        const { productId } = await request.json();
+        // Baca itemId dari query param terlebih dahulu, fallback ke body
+        const { searchParams } = new URL(request.url);
+        let productId = searchParams.get('itemId') ?? searchParams.get('productId');
+
+        if (!productId) {
+            const contentType = request.headers.get('content-type') ?? '';
+            if (contentType.includes('application/json')) {
+                const body = await request.json().catch(() => ({}));
+                productId = body.productId ?? body.itemId ?? null;
+            }
+        }
+
+        if (!productId) {
+            return NextResponse.json({ message: 'productId atau itemId diperlukan' }, { status: 400 });
+        }
+
         await prisma.cartItem.deleteMany({
             where: { userId, productId },
         });

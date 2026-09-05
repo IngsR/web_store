@@ -24,7 +24,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, Shield } from 'lucide-react';
 import JumpingDotsLoader from '@/components/ui/jumping-dots-loader';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -52,7 +53,7 @@ const accountFormSchema = z
 type AccountFormValues = z.infer<typeof accountFormSchema>;
 
 export default function AccountPage() {
-    const { user, login, isLoading } = useAuth();
+    const { user, login, isLoading, isAdmin } = useAuth();
     const { toast } = useToast();
     const [preview, setPreview] = useState<string | null>(null);
     const router = useRouter();
@@ -199,6 +200,25 @@ export default function AccountPage() {
                         Manage your account details and password.
                     </p>
                 </div>
+
+                {isAdmin && user?.role === 'admin' && (
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-primary/10 border border-primary/25 rounded-2xl">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-primary/20 rounded-xl text-primary shrink-0">
+                                <Shield className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-foreground">Akses Admin Aktif</p>
+                                <p className="text-xs text-muted-foreground">Anda terautentikasi dengan hak akses Administrator sistem.</p>
+                            </div>
+                        </div>
+                        <Button asChild size="sm" className="font-semibold shadow-sm shrink-0">
+                            <Link href="/dashboard">
+                                Buka Dashboard Admin
+                            </Link>
+                        </Button>
+                    </div>
+                )}
 
                 <Form {...form}>
                     <form

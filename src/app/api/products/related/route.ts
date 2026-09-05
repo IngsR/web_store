@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import { transformProductForClient } from '@/lib/data/transform';
+import { transformProductForClient } from '@/lib/repositories/transform';
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
