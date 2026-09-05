@@ -23,6 +23,7 @@ import {
     FileText,
     Wallet,
     CreditCard,
+    PhoneCall,
 } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -92,42 +93,13 @@ export default function CheckoutPage() {
                 const order = await res.json();
                 setCompletedOrder(order);
                 clearCart();
-
-                // Generate pesan WhatsApp resmi
-                const waText =
-                    `*SURAT PEMESANAN KENDARAAN (SPK ONLINE)*\n` +
-                    `*No. SPK:* ${order.id}\n\n` +
-                    `*Data Pemesan:*\n` +
-                    `• Nama: ${order.customerName}\n` +
-                    `• No. Telp/WA: ${order.customerPhone}\n` +
-                    `• Email: ${order.customerEmail}\n` +
-                    `• Kota: ${order.customerCity}\n` +
-                    `• Alamat: ${order.customerAddress}\n\n` +
-                    `*Unit Dipesan:*\n` +
-                    order.items
-                        .map(
-                            (i: any) =>
-                                `• ${i.name} (${i.quantity}x) - ${formatCurrency(i.price)}`,
-                        )
-                        .join('\n') +
-                    `\n\n*Total Nilai OTR:* ${formatCurrency(order.totalAmount)}\n` +
-                    `*Rencana Pembayaran:* ${order.paymentMethod === 'CASH' ? 'Tunai (Cash Keras)' : 'Kredit (Cicilan Leasing)'}\n` +
-                    (order.notes ? `*Catatan Khusus:* ${order.notes}\n\n` : '\n') +
-                    `Halo Sales Ing Store, saya telah mengirim pemesanan unit di website. Mohon informasi ketersediaan unit dan panduan langkah selanjutnya. Terima kasih!`;
-
-                const waUrl = `https://wa.me/6281234567890?text=${encodeURIComponent(waText)}`;
-
-                // Buka WhatsApp di tab baru secara otomatis
-                if (typeof window !== 'undefined') {
-                    window.open(waUrl, '_blank');
-                }
             } else {
                 const errorData = await res.json();
-                alert(errorData.message || 'Gagal mengirim pesanan. Silakan coba lagi.');
+                alert(errorData.message || 'Gagal mengirim pesanan. Silakan periksa kembali data Anda.');
             }
         } catch (error) {
             console.error('Submit order error:', error);
-            alert('Terjadi kesalahan saat memproses pesanan.');
+            alert('Terjadi kesalahan teknis saat memproses pesanan.');
         } finally {
             setIsSubmitting(false);
         }
@@ -143,17 +115,17 @@ export default function CheckoutPage() {
                             <CheckCircle2 className="h-8 w-8 text-white" />
                         </div>
                         <h2 className="text-xl sm:text-2xl font-headline font-bold">
-                            Pemesanan Unit Berhasil Dikirim!
+                            Pemesanan Unit Berhasil Diterima!
                         </h2>
                         <p className="text-xs sm:text-sm text-emerald-100 mt-1">
-                            Data pemesanan Anda telah terdaftar resmi di sistem dealer Ing Store.
+                            Terima kasih telah memilih Ing Store. Formulir pemesanan mobil Anda telah tercatat aman di sistem kami.
                         </p>
                     </div>
 
                     <CardContent className="p-6 space-y-5 text-left text-xs sm:text-sm">
                         <div className="p-4 rounded-xl bg-muted/50 border border-border/80 space-y-2">
                             <div className="flex justify-between items-center pb-2 border-b border-border/60">
-                                <span className="text-muted-foreground font-medium">Nomor Registrasi SPK:</span>
+                                <span className="text-muted-foreground font-medium">Nomor Pemesanan:</span>
                                 <span className="font-mono font-bold text-primary text-sm sm:text-base">
                                     {completedOrder.id}
                                 </span>
@@ -163,54 +135,47 @@ export default function CheckoutPage() {
                                 <span className="font-bold text-foreground">{completedOrder.customerName}</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-muted-foreground">Nomor Kontak / WhatsApp:</span>
+                                <span className="text-muted-foreground">Nomor WhatsApp:</span>
                                 <span className="font-bold text-foreground">{completedOrder.customerPhone}</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-muted-foreground">Kota / Domisili:</span>
+                                <span className="text-muted-foreground">Kota Domisili:</span>
                                 <span className="font-bold text-foreground">{completedOrder.customerCity}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">Skema Pembelian:</span>
                                 <Badge variant={completedOrder.paymentMethod === 'CASH' ? 'default' : 'secondary'}>
-                                    {completedOrder.paymentMethod === 'CASH' ? 'Tunai / Cash' : 'Kredit Leasing'}
+                                    {completedOrder.paymentMethod === 'CASH' ? 'Tunai (Cash Keras)' : 'Kredit Leasing'}
                                 </Badge>
                             </div>
                             <div className="flex justify-between items-center pt-2 border-t border-border/60">
-                                <span className="font-bold text-foreground">Total Nilai Unit:</span>
+                                <span className="font-bold text-foreground">Total Estimasi OTR:</span>
                                 <span className="font-extrabold text-primary text-sm sm:text-base">
                                     {formatCurrency(completedOrder.totalAmount)}
                                 </span>
                             </div>
                         </div>
 
-                        <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-900 dark:text-blue-200">
-                            <p className="font-bold">Langkah Selanjutnya:</p>
-                            <p className="mt-0.5">
-                                Konsultan sales kami akan segera menghubungi nomor WhatsApp Anda untuk konfirmasi jadwal inspeksi unit, kelengkapan berkas faktur/STNK, atau proses leasing.
+                        <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-950 dark:text-blue-200 space-y-1">
+                            <p className="font-bold flex items-center gap-1.5 text-sm">
+                                <PhoneCall className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                Sales Kami Akan Segera Menghubungi Anda
+                            </p>
+                            <p className="text-muted-foreground dark:text-blue-300 leading-relaxed pt-0.5">
+                                Konsultan sales representatif kami yang bertugas akan segera menghubungi nomor WhatsApp Anda (<strong>{completedOrder.customerPhone}</strong>) untuk mengonfirmasi ketersediaan unit, rincian warna, simulasi hitungan cicilan (bila kredit), atau mengatur jadwal test drive langsung di showroom.
                             </p>
                         </div>
 
                         <div className="space-y-2 pt-2">
-                            <Button
-                                asChild
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 text-xs sm:text-sm gap-2"
-                            >
-                                <a
-                                    href={`https://wa.me/6281234567890?text=${encodeURIComponent(
-                                        `Halo Sales Ing Store, saya ingin menindaklanjuti pemesanan unit dengan No. SPK ${completedOrder.id} atas nama ${completedOrder.customerName}.`,
-                                    )}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <MessageCircle className="h-4 w-4" />
-                                    Buka Percakapan WhatsApp Sales
-                                </a>
+                            <Button asChild className="w-full font-bold h-11 text-xs sm:text-sm">
+                                <Link href="/">
+                                    Kembali ke Beranda
+                                </Link>
                             </Button>
 
                             <Button asChild variant="outline" className="w-full text-xs h-10">
                                 <Link href="/products">
-                                    Kembali ke Katalog Mobil
+                                    Jelajahi Mobil Lainnya
                                 </Link>
                             </Button>
                         </div>
@@ -236,7 +201,7 @@ export default function CheckoutPage() {
             <div className="mb-6 sm:mb-8 text-center max-w-2xl mx-auto">
                 <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary mb-2">
                     <FileText className="h-3.5 w-3.5" />
-                    Formulir Booking Unit (SPK Online)
+                    Formulir Pemesanan Unit Mobil
                 </div>
                 <h1 className="font-headline text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
                     Konfirmasi Pemesanan Mobil
@@ -270,7 +235,7 @@ export default function CheckoutPage() {
                                         Identitas Pembeli / Pemesan
                                     </CardTitle>
                                     <CardDescription className="text-xs">
-                                        Data ini digunakan untuk pencatatan resmi Surat Pemesanan Kendaraan (SPK).
+                                        Data ini digunakan untuk pencatatan resmi pemesanan unit mobil di dealer kami.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4 px-4 sm:px-6 pt-5 pb-6">
@@ -462,10 +427,10 @@ export default function CheckoutPage() {
                                         </div>
                                         <div className="flex justify-between text-muted-foreground">
                                             <span>Biaya Booking Fee:</span>
-                                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">Gratis Registrasi SPK</span>
+                                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">Gratis Booking Online</span>
                                         </div>
                                         <div className="flex justify-between font-bold text-sm sm:text-base pt-1 border-t border-border/60">
-                                            <span className="text-foreground">Total Nilai OTR:</span>
+                                            <span className="text-foreground">Total Estimasi OTR:</span>
                                             <span className="text-primary text-base sm:text-lg font-extrabold">
                                                 {formatCurrency(effectiveTotal)}
                                             </span>
@@ -478,7 +443,7 @@ export default function CheckoutPage() {
                                             type="submit"
                                             size="lg"
                                             disabled={isSubmitting}
-                                            className="w-full font-bold h-12 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg gap-2"
+                                            className="w-full font-bold h-12 text-xs sm:text-sm bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg gap-2"
                                         >
                                             {isSubmitting ? (
                                                 <>
@@ -487,13 +452,13 @@ export default function CheckoutPage() {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <MessageCircle className="h-4 w-4" />
-                                                    <span>Kirim Pemesanan & Hubungi WA</span>
+                                                    <CheckCircle2 className="h-4 w-4" />
+                                                    <span>Kirim Formulir Pemesanan</span>
                                                 </>
                                             )}
                                         </Button>
                                         <p className="text-[10px] text-muted-foreground text-center mt-2 leading-tight">
-                                            Dengan mengirim formulir ini, pesanan Anda akan dicatat di sistem showroom dan diarahkan ke WhatsApp konsultan sales resmi.
+                                            Pesanan Anda akan langsung tercatat di sistem dealer. Tim konsultan sales kami yang akan berinisiatif menghubungi nomor WhatsApp Anda untuk konfirmasi unit dan jadwal test drive.
                                         </p>
                                     </div>
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getServerSession } from '@/lib/auth.server';
+import { getServerSession } from '@/lib/auth/auth-server';
 import { revalidateHomepageSettings } from '@/lib/actions/revalidate';
 
 export const dynamic = 'force-dynamic';

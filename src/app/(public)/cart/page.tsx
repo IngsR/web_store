@@ -199,7 +199,7 @@ export default function CartPage() {
                                 <div className="space-y-2 pt-3">
                                     <Button asChild size="lg" className="w-full font-bold h-11 text-xs sm:text-sm shadow-md">
                                         <Link href="/checkout">
-                                            Lanjut ke Formulir Pemesanan (SPK)
+                                            Lanjut ke Formulir Pemesanan
                                         </Link>
                                     </Button>
                                     <Button asChild variant="outline" className="w-full text-xs h-10">
@@ -208,7 +208,7 @@ export default function CartPage() {
                                         </Link>
                                     </Button>
                                     <p className="text-[11px] text-center text-muted-foreground">
-                                        Data pemesanan akan dicatat resmi sebagai SPK sebelum konfirmasi sales via WhatsApp.
+                                        Pesanan Anda akan langsung tercatat di sistem showroom untuk segera ditindaklanjuti oleh staf konsultan kami.
                                     </p>
                                 </div>
                             </CardContent>

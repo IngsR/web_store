@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getServerSession } from '@/lib/auth.server';
+import { getServerSession } from '@/lib/auth/auth-server';
 import { productUpdateApiSchema } from '@/lib/schemas/product';
 import { deleteImage, uploadImageFromBase64 } from '@/lib/blob-storage';
-import { transformProductForClient } from '@/lib/data/transform';
+import { transformProductForClient } from '@/lib/repositories/transform';
 import { revalidateProduct } from '@/lib/actions/revalidate';
 import { clearCacheByPrefix } from '@/lib/cache';
 

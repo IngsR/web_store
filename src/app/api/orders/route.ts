@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getOrders, createOrder } from '@/lib/data/orders';
+import { getOrders, createOrder } from '@/lib/repositories/order-repository';
+import { getServerSession } from '@/lib/auth/auth-server';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -31,6 +32,11 @@ const orderSchema = z.object({
  * GET: Mengambil daftar semua pesanan untuk dashboard admin.
  */
 export async function GET() {
+    const session = await getServerSession();
+    if (session?.user?.role !== 'admin') {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const orders = await getOrders();
         return NextResponse.json(orders);

@@ -8,8 +8,8 @@ import React, {
     useEffect,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { getSession } from '@/lib/auth';
-import type { User } from '@/lib/types';
+import { getSession } from '@/lib/auth/auth-client';
+import type { User } from '@/types';
 
 interface AuthContextType {
     user: User | null;

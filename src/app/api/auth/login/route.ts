@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { encrypt } from '@/lib/auth.server';
+import { encrypt } from '@/lib/auth/auth-server';
 import * as z from 'zod';
-import type { User as AppUser } from '@/lib/types';
-import type { SessionPayload } from '@/lib/auth.types';
+import type { User as AppUser, SessionPayload } from '@/types';
 
 const loginSchema = z.object({
     email: z.string().email(),

@@ -1,4 +1,4 @@
-import type { Order } from "@/lib/types";
+import type { Order } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 
 /**

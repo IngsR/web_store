@@ -3,9 +3,9 @@
 import { useEffect, useState, useCallback, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import ProductCard from '@/components/product-card';
-import ProductFilters, { type FilterState } from '@/components/product-filters';
-import type { Product } from '@/lib/types';
+import ProductCard from '@/components/product/product-card';
+import ProductFilters, { type FilterState } from './_components/product-filters';
+import type { Product } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Home, Package, RotateCcw } from 'lucide-react';

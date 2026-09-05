@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { transformProductForClient } from '@/lib/data/transform';
+import { transformProductForClient } from '@/lib/repositories/transform';
 
 export async function GET() {
     try {

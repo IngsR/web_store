@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
-import { getSalesList, createSales } from "@/lib/data/sales";
-import prisma from "@/lib/prisma";
+import {
+  getSalesList,
+  createSales,
+  seedInitialSalesIfEmpty,
+} from "@/lib/repositories/sales-repository";
+import { getServerSession } from "@/lib/auth/auth-server";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -20,44 +24,17 @@ const createSalesSchema = z.object({
  * GET: Mengambil daftar sales dan statistik dari Prisma ORM.
  */
 export async function GET() {
+  const session = await getServerSession();
+  if (session?.user?.role !== 'admin') {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     let sales = await getSalesList();
 
     // Seed data awal jika database masih kosong
     if (sales.length === 0) {
-      await prisma.sales.createMany({
-        data: [
-          {
-            employeeId: "SLS-ERP-101",
-            name: "Dimas Arya Pratama",
-            phone: "081289891234",
-            email: "dimas.arya@ingstore.com",
-            title: "Senior Automotive Consultant",
-            status: "ACTIVE",
-            assignedLeadsCount: 5,
-          },
-          {
-            employeeId: "SLS-ERP-102",
-            name: "Ratna Anindya",
-            phone: "085712345678",
-            email: "ratna.anindya@ingstore.com",
-            title: "Sales Executive Specialist",
-            status: "ACTIVE",
-            assignedLeadsCount: 4,
-          },
-          {
-            employeeId: "SLS-ERP-103",
-            name: "Fajar Hidayat",
-            phone: "087890123456",
-            email: "fajar.hidayat@ingstore.com",
-            title: "Fleet & VIP Advisor",
-            status: "ACTIVE",
-            assignedLeadsCount: 3,
-          },
-        ],
-        skipDuplicates: true,
-      });
-      sales = await getSalesList();
+      sales = await seedInitialSalesIfEmpty();
     }
 
     const stats = {

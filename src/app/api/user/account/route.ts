@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import * as z from 'zod';
-import { getServerSession } from '@/lib/auth.server';
+import { getServerSession } from '@/lib/auth/auth-server';
 import { uploadImageFromBase64, deleteImage } from '@/lib/blob-storage';
 
 const accountUpdateSchema = z.object({

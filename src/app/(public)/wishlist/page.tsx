@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { useWishlist } from '@/hooks/use-wishlist';
-import ProductCard from '@/components/product-card';
+import ProductCard from '@/components/product/product-card';
 import { Button } from '@/components/ui/button';
 import { HeartCrack } from 'lucide-react';
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getServerSession } from '@/lib/auth.server';
+import { getServerSession } from '@/lib/auth/auth-server';
 
 // Get wishlist items
 export async function GET(req: NextRequest) {

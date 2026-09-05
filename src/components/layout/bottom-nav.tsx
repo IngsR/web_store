@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Car, Calculator, User } from 'lucide-react';
+import { Home, Car, Calculator, User, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -15,7 +15,9 @@ interface NavItem {
 
 export default function BottomNav() {
     const pathname = usePathname();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isAdmin, user } = useAuth();
+
+    const isUserAdmin = Boolean(isAdmin && user?.role === 'admin');
 
     const items: NavItem[] = [
         {
@@ -34,6 +36,15 @@ export default function BottomNav() {
             label: 'Simulasi',
             icon: Calculator,
         },
+        ...(isUserAdmin
+            ? [
+                  {
+                      href: '/dashboard',
+                      label: 'Admin',
+                      icon: Shield,
+                  },
+              ]
+            : []),
         {
             href: isAuthenticated ? '/account' : '/login',
             label: isAuthenticated ? 'Akun' : 'Masuk',
@@ -51,9 +62,14 @@ export default function BottomNav() {
     return (
         <nav
             aria-label="Mobile Navigation"
-            className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-md border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.06)] pb-[env(safe-area-inset-bottom,0px)]"
+            className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-card/95 backdrop-blur-md border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.06)] pb-[env(safe-area-inset-bottom,0px)]"
         >
-            <div className="grid grid-cols-4 h-16 max-w-md mx-auto items-center px-3">
+            <div
+                className={cn(
+                    'grid h-16 max-w-md mx-auto items-center px-2',
+                    isUserAdmin ? 'grid-cols-5' : 'grid-cols-4',
+                )}
+            >
                 {items.map((item) => {
                     const active = isActive(item);
                     const Icon = item.icon;
