@@ -30,21 +30,57 @@ export const getAllProductIds = cache(async (): Promise<{ id: string }[]> => {
 });
 
 export const getPromoProducts = cache(async (): Promise<Product[]> => {
-    const products = await prisma.product.findMany({
-        where: { isPromo: true },
-        take: 10,
-        orderBy: { popularity: 'desc' },
-    });
-    return products.map(transformProductForClient);
+    try {
+        let products = await prisma.product.findMany({
+            where: { isPromo: true },
+            take: 10,
+            orderBy: { popularity: 'desc' },
+        });
+
+        if (products.length === 0) {
+            products = await prisma.product.findMany({
+                where: {
+                    discountPrice: {
+                        gt: 0,
+                    },
+                },
+                take: 10,
+                orderBy: { popularity: 'desc' },
+            });
+        }
+
+        return products.map(transformProductForClient);
+    } catch (error) {
+        console.error('Database error in getPromoProducts:', error);
+        return [];
+    }
 });
 
 export const getFeaturedProducts = cache(async (): Promise<Product[]> => {
-    const products = await prisma.product.findMany({
-        where: { isFeatured: true },
-        take: 12,
-        orderBy: { popularity: 'desc' },
-    });
-    return products.map(transformProductForClient);
+    try {
+        let products = await prisma.product.findMany({
+            where: { isFeatured: true },
+            take: 12,
+            orderBy: { popularity: 'desc' },
+        });
+
+        // Fallback cerdas: Jika belum ada produk yang ditandai unggulan (isFeatured),
+        // tampilkan produk terbaru/populer agar bagian Koleksi Terkini / Produk Unggulan tetap terisi.
+        if (products.length === 0) {
+            products = await prisma.product.findMany({
+                take: 12,
+                orderBy: [
+                    { popularity: 'desc' },
+                    { createdAt: 'desc' },
+                ],
+            });
+        }
+
+        return products.map(transformProductForClient);
+    } catch (error) {
+        console.error('Database error in getFeaturedProducts:', error);
+        return [];
+    }
 });
 
 // Fungsi untuk admin dashboard (selalu menyajikan data teranyar tanpa request-level cache)
