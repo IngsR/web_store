@@ -9,11 +9,16 @@ import PromoCarousel from './_components/promo-carousel';
 export const revalidate = 300; // Static ISR caching every 5 minutes
 
 async function getHomepageData() {
-    const [featuredProducts, promoProducts] = await Promise.all([
-        getFeaturedProducts(),
-        getPromoProducts(),
-    ]);
-    return { featuredProducts, promoProducts };
+    try {
+        const [featuredProducts, promoProducts] = await Promise.all([
+            getFeaturedProducts(),
+            getPromoProducts(),
+        ]);
+        return { featuredProducts, promoProducts };
+    } catch (error) {
+        console.error('Error loading homepage products:', error);
+        return { featuredProducts: [], promoProducts: [] };
+    }
 }
 
 export default async function HomePage() {
@@ -134,25 +139,35 @@ export default async function HomePage() {
                     </div>
 
                     {/* Mobile 2 baris / 2 kolom grid with balanced gap and typography */}
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6">
-                        {featuredProducts.map((product) => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
-                    </div>
+                    {featuredProducts.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6">
+                            {featuredProducts.map((product) => (
+                                <ProductCard key={product.id} product={product} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12 px-4 rounded-xl border border-dashed border-border/80 bg-card/40">
+                            <p className="text-sm text-muted-foreground">
+                                Belum ada produk yang tersedia saat ini.
+                            </p>
+                        </div>
+                    )}
 
                     {/* Mobile "Lihat Semua" CTA at bottom */}
-                    <div className="mt-6 text-center sm:hidden">
-                        <Button
-                            asChild
-                            variant="outline"
-                            className="w-full text-xs font-semibold h-10 shadow-sm"
-                        >
-                            <Link href="/products" className="flex items-center justify-center gap-1.5">
-                                Lihat Semua Produk
-                                <ChevronRight className="h-4 w-4" />
-                            </Link>
-                        </Button>
-                    </div>
+                    {featuredProducts.length > 0 && (
+                        <div className="mt-6 text-center sm:hidden">
+                            <Button
+                                asChild
+                                variant="outline"
+                                className="w-full text-xs font-semibold h-10 shadow-sm"
+                            >
+                                <Link href="/products" className="flex items-center justify-center gap-1.5">
+                                    Lihat Semua Produk
+                                    <ChevronRight className="h-4 w-4" />
+                                </Link>
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </section>
 

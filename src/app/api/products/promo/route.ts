@@ -4,13 +4,25 @@ import { transformProductForClient } from '@/lib/repositories/transform';
 
 export async function GET() {
     try {
-        const products = await prisma.product.findMany({
+        let products = await prisma.product.findMany({
             where: {
                 isPromo: true,
             },
-
             take: 10,
+            orderBy: { popularity: 'desc' },
         });
+
+        if (products.length === 0) {
+            products = await prisma.product.findMany({
+                where: {
+                    discountPrice: {
+                        gt: 0,
+                    },
+                },
+                take: 10,
+                orderBy: { popularity: 'desc' },
+            });
+        }
 
         return NextResponse.json(products.map(transformProductForClient));
     } catch (error) {
